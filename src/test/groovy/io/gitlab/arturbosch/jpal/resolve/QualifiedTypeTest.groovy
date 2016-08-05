@@ -1,4 +1,4 @@
-package io.gitlab.arturbosch.japa.resolve
+package io.gitlab.arturbosch.jpal.resolve
 
 import spock.lang.Specification
 
@@ -26,7 +26,6 @@ class QualifiedTypeTest extends Specification {
 	}
 
 	def "from inner class type to outer class type"() {
-
 		given: "types of outer class and its inner class"
 		def name = "com.gitlab.artismarti.smartsmells.java.CycleDummy.InnerCycleOne"
 		def outerType = new QualifiedType("com.gitlab.artismarti.smartsmells.java.CycleDummy",
