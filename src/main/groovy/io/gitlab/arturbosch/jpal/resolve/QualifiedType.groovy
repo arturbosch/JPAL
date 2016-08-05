@@ -1,5 +1,6 @@
 package io.gitlab.arturbosch.jpal.resolve
 
+import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import io.gitlab.arturbosch.jpal.internal.Validate
@@ -12,6 +13,7 @@ import io.gitlab.arturbosch.jpal.internal.Validate
  */
 @ToString(includeNames = false, includePackage = false)
 @EqualsAndHashCode
+@CompileStatic
 class QualifiedType {
 
 	final String name

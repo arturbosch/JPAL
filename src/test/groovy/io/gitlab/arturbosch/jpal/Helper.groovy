@@ -5,6 +5,7 @@ import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
+import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
 import java.nio.file.Files
@@ -14,6 +15,7 @@ import java.nio.file.Paths
 /**
  * @author artur
  */
+@CompileStatic
 class Helper {
 
 	static Path BASE_PATH = Paths.get("./src/test/groovy/io/gitlab/arturbosch/jpal")

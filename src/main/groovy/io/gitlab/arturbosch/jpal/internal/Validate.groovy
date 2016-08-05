@@ -1,8 +1,11 @@
-package io.gitlab.arturbosch.jpal.internal;
+package io.gitlab.arturbosch.jpal.internal
+
+import groovy.transform.CompileStatic;
 
 /**
  * @author artur
  */
+@CompileStatic
 public final class Validate {
 
 	private Validate() {

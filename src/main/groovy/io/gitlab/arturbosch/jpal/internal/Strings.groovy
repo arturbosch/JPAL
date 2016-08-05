@@ -1,8 +1,11 @@
 package io.gitlab.arturbosch.jpal.internal
 
+import groovy.transform.CompileStatic
+
 /**
  * @author artur
  */
+@CompileStatic
 class Strings {
 
 	private Strings() {

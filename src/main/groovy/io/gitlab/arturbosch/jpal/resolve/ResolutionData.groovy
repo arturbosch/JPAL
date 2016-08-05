@@ -3,6 +3,7 @@ package io.gitlab.arturbosch.jpal.resolve
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.ImportDeclaration
 import com.github.javaparser.ast.PackageDeclaration
+import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.internal.Validate
 
 /**
@@ -10,6 +11,7 @@ import io.gitlab.arturbosch.jpal.internal.Validate
  *
  * @author artur
  */
+@CompileStatic
 class ResolutionData {
 
 	final String packageName
