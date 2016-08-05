@@ -15,11 +15,11 @@ import java.nio.file.Path
 @CompileStatic
 class CompilationInfo {
 
-	QualifiedType qualifiedType
-	CompilationUnit unit
-	Path path
-	List<QualifiedType> usedTypes
-	Set<QualifiedType> innerClasses
+	final QualifiedType qualifiedType
+	final CompilationUnit unit
+	final Path path
+	final List<QualifiedType> usedTypes
+	final Set<QualifiedType> innerClasses
 
 	private CompilationInfo(QualifiedType qualifiedType, CompilationUnit unit, Path path,
 							List<QualifiedType> usedTypes, Set<QualifiedType> innerClasses) {
