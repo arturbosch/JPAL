@@ -2,6 +2,7 @@ package io.gitlab.arturbosch.japa.resolve
 
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
+import io.gitlab.arturbosch.japa.util.Validate
 
 /**
  * Represent qualified types. Contains convenience methods to check if the underlining
@@ -13,8 +14,8 @@ import groovy.transform.ToString
 @EqualsAndHashCode
 class QualifiedType {
 
-	String name
-	TypeToken typeToken
+	final String name
+	final TypeToken typeToken
 
 	/**
 	 * Type of the type.
@@ -24,8 +25,8 @@ class QualifiedType {
 	}
 
 	QualifiedType(String name, TypeToken typeToken) {
-		this.name = name
-		this.typeToken = typeToken
+		this.name = Validate.notNull(name)
+		this.typeToken = Validate.notNull(typeToken)
 	}
 
 	boolean isPrimitive() {
