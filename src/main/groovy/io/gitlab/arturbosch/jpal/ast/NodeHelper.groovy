@@ -10,6 +10,7 @@ import com.github.javaparser.ast.body.ModifierSet
 import io.gitlab.arturbosch.jpal.internal.Looper
 import io.gitlab.arturbosch.jpal.internal.Validate
 
+import java.util.function.Predicate
 import java.util.stream.Collectors
 
 /**
@@ -18,6 +19,10 @@ import java.util.stream.Collectors
  * @author artur
  */
 final class NodeHelper {
+
+	static Predicate<Node> unitPredicate = { it instanceof CompilationUnit }
+	static Predicate<Node> classPredicate = { it instanceof ClassOrInterfaceDeclaration }
+	static Predicate<Node> methodPredicate = { it instanceof MethodDeclaration }
 
 	private NodeHelper() {}
 
@@ -79,12 +84,7 @@ final class NodeHelper {
 	 * @return maybe a class declaration
 	 */
 	static Optional<ClassOrInterfaceDeclaration> findDeclaringClass(Node node) {
-		Node parent = Validate.notNull(node)
-		Looper.loop {
-			parent = parent.getParentNode()
-		} until { parent instanceof ClassOrInterfaceDeclaration || parent == null }
-
-		return parent == null ? Optional.empty() : Optional.of(parent)
+		return findDeclaring(node, classPredicate)
 	}
 
 	/**
@@ -93,15 +93,8 @@ final class NodeHelper {
 	 * @return maybe a compilation unit
 	 */
 	static Optional<CompilationUnit> findDeclaringCompilationUnit(Node node) {
-		Node parent = Validate.notNull(node)
-		Looper.loop {
-			parent = parent.getParentNode()
-		} until { unitPredicate || parent == null }
-
-		return parent == null ? Optional.empty() : Optional.of(parent)
+		return findDeclaring(node, unitPredicate)
 	}
-
-	def unitPredicate = { it instanceof CompilationUnit }
 
 	/**
 	 * Searches for the method given node is declared in.
@@ -109,10 +102,14 @@ final class NodeHelper {
 	 * @return maybe a method declaration
 	 */
 	static Optional<MethodDeclaration> findDeclaringMethod(Node node) {
+		return findDeclaring(node, methodPredicate)
+	}
+
+	private static Optional findDeclaring(Node node, Predicate<Node> predicate) {
 		Node parent = Validate.notNull(node)
 		Looper.loop {
 			parent = parent.getParentNode()
-		} until { parent instanceof MethodDeclaration || parent == null }
+		} until { predicate.test(parent) || parent == null }
 
 		return parent == null ? Optional.empty() : Optional.of(parent)
 	}

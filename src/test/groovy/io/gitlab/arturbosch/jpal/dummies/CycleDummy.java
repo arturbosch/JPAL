@@ -1,6 +1,8 @@
 package io.gitlab.arturbosch.jpal.dummies;
 
 /**
+ * Don't touch this class, tests depend on exact token structure!
+ *
  * @author artur
  */
 @SuppressWarnings("ALL")
