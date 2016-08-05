@@ -37,11 +37,11 @@ final class TypeHelper {
 	static QualifiedType getQualifiedType(ClassOrInterfaceDeclaration n, CompilationUnit unit) {
 		def name = n.name
 		def holder = new ResolutionData(unit.package, unit.imports)
-		Resolver.getQualifiedType(holder, new ClassOrInterfaceType(name))
+		return Resolver.getQualifiedType(holder, new ClassOrInterfaceType(name))
 	}
 
 	static QualifiedType getQualifiedType(ClassOrInterfaceDeclaration n, PackageDeclaration declaration) {
-		new QualifiedType("$declaration.packageName.$n.name", QualifiedType.TypeToken.REFERENCE)
+		return new QualifiedType("$declaration.packageName.$n.name", QualifiedType.TypeToken.REFERENCE)
 	}
 
 	static Set<QualifiedType> getQualifiedTypesOfInnerClasses(CompilationUnit unit) {
@@ -55,6 +55,7 @@ final class TypeHelper {
 				new QualifiedType("$packageName.$outerClassName.$it", QualifiedType.TypeToken.REFERENCE)
 			}
 		} else {
+			//TODO
 			throw new RuntimeException()
 		}
 	}
