@@ -9,7 +9,7 @@ import spock.lang.Specification
  */
 class CompilationStorageTest extends Specification {
 
-	private QualifiedType cycleType = new QualifiedType("io.gitlab.arturbosch.jpal.CycleDummy",
+	private QualifiedType cycleType = new QualifiedType("io.gitlab.arturbosch.jpal.dummies.CycleDummy",
 			QualifiedType.TypeToken.REFERENCE)
 
 	private QualifiedType innerCycleType = new QualifiedType(cycleType.name + ".InnerCycleOne",

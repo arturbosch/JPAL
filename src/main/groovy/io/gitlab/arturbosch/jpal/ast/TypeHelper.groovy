@@ -15,15 +15,9 @@ import io.gitlab.arturbosch.jpal.resolve.Resolver
 /**
  * @author artur
  */
-class TypeHelper {
+final class TypeHelper {
 
-	static boolean isEmptyBody(ClassOrInterfaceDeclaration n) {
-		n.members.empty
-	}
-
-	static boolean hasNoMethods(ClassOrInterfaceDeclaration n) {
-		n.members.stream().filter { it instanceof MethodDeclaration }.count() == 0
-	}
+	private TypeHelper() {}
 
 	static Optional<ClassOrInterfaceType> getClassOrInterfaceType(Type type) {
 		Type tmp = type

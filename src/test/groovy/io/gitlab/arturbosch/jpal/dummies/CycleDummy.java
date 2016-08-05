@@ -1,4 +1,4 @@
-package io.gitlab.arturbosch.jpal;
+package io.gitlab.arturbosch.jpal.dummies;
 
 /**
  * @author artur

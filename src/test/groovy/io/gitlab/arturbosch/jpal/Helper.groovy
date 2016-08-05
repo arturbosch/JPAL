@@ -18,8 +18,9 @@ import java.nio.file.Paths
 @CompileStatic
 class Helper {
 
-	static Path BASE_PATH = Paths.get("./src/test/groovy/io/gitlab/arturbosch/jpal")
+	static Path BASE_PATH = Paths.get("./src/test/groovy/io/gitlab/arturbosch/jpal/dummies")
 	static Path DUMMY = BASE_PATH.resolve("Dummy.java")
+	static Path EMPTY_DUMMY = BASE_PATH.resolve("EmptyDummy.java")
 
 	static CompilationUnit compile(Path path) {
 		return IOGroovyMethods.withCloseable(Files.newInputStream(path)) {

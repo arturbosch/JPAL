@@ -19,6 +19,8 @@ import java.util.stream.Collectors
  */
 final class NodeHelper {
 
+	private NodeHelper() {}
+
 	/**
 	 * Returns a list of private method declarations found within the given node.
 	 * @param n node, most often ClassOrInterfaceDeclaration or CompilationUnit
@@ -94,10 +96,12 @@ final class NodeHelper {
 		Node parent = Validate.notNull(node)
 		Looper.loop {
 			parent = parent.getParentNode()
-		} until { parent instanceof CompilationUnit || parent == null }
+		} until { unitPredicate || parent == null }
 
 		return parent == null ? Optional.empty() : Optional.of(parent)
 	}
+
+	def unitPredicate = { it instanceof CompilationUnit }
 
 	/**
 	 * Searches for the method given node is declared in.

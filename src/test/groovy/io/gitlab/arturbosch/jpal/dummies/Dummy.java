@@ -1,4 +1,4 @@
-package io.gitlab.arturbosch.jpal;
+package io.gitlab.arturbosch.jpal.dummies;
 
 import io.gitlab.arturbosch.jpal.resolve.QualifiedType;
 import io.gitlab.arturbosch.jpal.resolve.ResolutionData;
