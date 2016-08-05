@@ -1,4 +1,4 @@
-package io.gitlab.arturbosch.japa.util
+package io.gitlab.arturbosch.jpal.internal
 
 /**
  * @author artur

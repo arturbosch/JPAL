@@ -1,3 +1,3 @@
-# JaPa - Javaparser (Helpers)
+# JPAL - Javaparser (Helpers)
 
 TODO

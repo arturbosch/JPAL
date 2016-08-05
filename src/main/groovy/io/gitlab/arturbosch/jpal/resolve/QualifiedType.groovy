@@ -1,8 +1,8 @@
-package io.gitlab.arturbosch.japa.resolve
+package io.gitlab.arturbosch.jpal.resolve
 
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
-import io.gitlab.arturbosch.japa.util.Validate
+import io.gitlab.arturbosch.jpal.internal.Validate
 
 /**
  * Represent qualified types. Contains convenience methods to check if the underlining

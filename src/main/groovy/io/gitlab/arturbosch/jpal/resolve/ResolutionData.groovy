@@ -1,9 +1,9 @@
-package io.gitlab.arturbosch.japa.resolve
+package io.gitlab.arturbosch.jpal.resolve
 
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.ImportDeclaration
 import com.github.javaparser.ast.PackageDeclaration
-import io.gitlab.arturbosch.japa.util.Validate
+import io.gitlab.arturbosch.jpal.internal.Validate
 
 /**
  * Holds information of a compilation unit. Used by a resolver to access qualified types.

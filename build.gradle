@@ -1,4 +1,4 @@
-group 'io.gitlab.arturbosch.japa'
+group 'io.gitlab.arturbosch.jpal'
 version '1.0.M1'
 
 apply plugin: 'java'
