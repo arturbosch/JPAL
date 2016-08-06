@@ -31,20 +31,29 @@ class QualifiedType {
 		this.typeToken = Validate.notNull(typeToken)
 	}
 
+	/**
+	 * @return true if primitive or boxed primitive
+	 */
 	boolean isPrimitive() {
 		return typeToken == TypeToken.PRIMITIVE || typeToken == TypeToken.BOXED_PRIMITIVE
 	}
 
+	/**
+	 * @return true if it's a jdk type - also see {@code JdkHelper}
+	 */
 	boolean isFromJdk() {
 		return typeToken == TypeToken.JAVA_REFERENCE
 	}
 
+	/**
+	 * @return true if reference type - this will be the most case where you want to operate on types
+	 */
 	boolean isReference() {
 		return typeToken == TypeToken.REFERENCE
 	}
 
 	/**
-	 * @return the class name
+	 * @return the class name without package structure
 	 */
 	String shortName() {
 		def index = name.lastIndexOf(".")
