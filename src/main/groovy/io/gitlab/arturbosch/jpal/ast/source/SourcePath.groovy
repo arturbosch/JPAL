@@ -1,5 +1,6 @@
 package io.gitlab.arturbosch.jpal.ast.source
 
+import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import groovy.transform.ToString
 
@@ -12,6 +13,7 @@ import java.nio.file.Path
  */
 @Immutable
 @ToString(includePackage = false, includeNames = false)
+@CompileStatic
 class SourcePath {
 
 	String path

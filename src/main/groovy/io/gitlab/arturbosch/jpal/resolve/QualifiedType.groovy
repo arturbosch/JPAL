@@ -22,6 +22,7 @@ class QualifiedType {
 	/**
 	 * Type of the type.
 	 */
+	@CompileStatic
 	enum TypeToken {
 		PRIMITIVE, BOXED_PRIMITIVE, REFERENCE, JAVA_REFERENCE, UNKNOWN
 	}

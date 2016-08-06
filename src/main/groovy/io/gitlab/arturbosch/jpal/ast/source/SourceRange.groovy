@@ -1,6 +1,7 @@
 package io.gitlab.arturbosch.jpal.ast.source
 
 import com.github.javaparser.ast.Node
+import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import groovy.transform.ToString
 
@@ -11,6 +12,7 @@ import groovy.transform.ToString
  */
 @Immutable
 @ToString(includePackage = false, includeNames = false)
+@CompileStatic
 class SourceRange {
 
 	int startLine
