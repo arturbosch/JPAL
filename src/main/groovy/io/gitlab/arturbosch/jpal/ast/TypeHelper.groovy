@@ -7,15 +7,19 @@ import com.github.javaparser.ast.body.TypeDeclaration
 import com.github.javaparser.ast.type.ClassOrInterfaceType
 import com.github.javaparser.ast.type.ReferenceType
 import com.github.javaparser.ast.type.Type
+import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.resolve.QualifiedType
 import io.gitlab.arturbosch.jpal.resolve.ResolutionData
 import io.gitlab.arturbosch.jpal.resolve.Resolver
+
+import java.util.stream.Collectors
 
 /**
  * Provides static methods to search for specific types.
  *
  * @author artur
  */
+@CompileStatic
 final class TypeHelper {
 
 	private TypeHelper() {}
@@ -27,10 +31,10 @@ final class TypeHelper {
 	 *
 	 * {@code
 	 *
-	 *  E.g. you have a FieldDeclaration field = ...
-	 *	Optional<ClassOrInterfaceType> maybeFullType = TypeHelper.getClassOrInterfaceType(field.getType())
+	 * E.g. you have a FieldDeclaration field = ...
+	 * 	Optional<ClassOrInterfaceType> maybeFullType = TypeHelper.getClassOrInterfaceType(field.getType())
 	 *
-	 * }
+	 *}
 	 *
 	 * @param type given type
 	 * @return maybe a class or interface type
@@ -101,12 +105,11 @@ final class TypeHelper {
 			String packageName = unit?.package?.packageName ?: ""
 			Set<String> innerClassesNames = NodeHelper.findNamesOfInnerClasses(mainClass)
 			String outerClassName = mainClass.name
-			return innerClassesNames.collect() {
+			return innerClassesNames.stream().map {
 				new QualifiedType("$packageName.$outerClassName.$it", QualifiedType.TypeToken.REFERENCE)
-			}
+			}.collect(Collectors.toSet())
 		} else {
-			//TODO
-			throw new RuntimeException()
+			return Collections.emptySet()
 		}
 	}
 
