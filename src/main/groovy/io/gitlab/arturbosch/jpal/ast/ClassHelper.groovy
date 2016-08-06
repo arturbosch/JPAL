@@ -76,4 +76,22 @@ final class ClassHelper {
 		return "$n.name${if (types) "<$types>" else ""}${if (extend) " extends $extend" else ""}${if (implement) " implements $implement" else ""}"
 	}
 
+	/**
+	 * Appends the root class name to given class name.
+	 *
+	 * Purpose of the method is to use the returned unqualified name as a parameter
+	 * to build the qualified type of given class.
+	 *
+	 * @param n given class
+	 * @return unqualified type with root class as string
+	 */
+	static String appendOuterClassIfInnerClass(ClassOrInterfaceDeclaration n) {
+		def unqualifiedName = n.name
+		if (n.parentNode instanceof ClassOrInterfaceDeclaration) {
+			def parentName = (n.parentNode as ClassOrInterfaceDeclaration).name
+			unqualifiedName = "$parentName.$n.name"
+		}
+		return unqualifiedName
+	}
+
 }

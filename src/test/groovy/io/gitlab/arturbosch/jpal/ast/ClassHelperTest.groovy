@@ -37,5 +37,10 @@ class ClassHelperTest extends Specification {
 		then: "full signature embraces the inner class behaviour"
 		signature == "InnerCycleOne"
 		fullSignature == "CycleDummy\$InnerCycleOne"
+
+		when: "requesting the unqualified signature of the inner class"
+		def unqualifiedName = ClassHelper.appendOuterClassIfInnerClass(innerClass)
+		then: "the outer class is appended"
+		unqualifiedName == "CycleDummy.InnerCycleOne"
 	}
 }
