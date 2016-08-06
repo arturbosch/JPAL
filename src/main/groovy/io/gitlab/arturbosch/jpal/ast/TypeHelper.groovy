@@ -25,6 +25,13 @@ final class TypeHelper {
 	 * This is a convenience method as javaparser often returns just the
 	 * abstract {@code Type} which is often not helpful.
 	 *
+	 * {@code
+	 *
+	 *  E.g. you have a FieldDeclaration field = ...
+	 *	Optional<ClassOrInterfaceType> maybeFullType = TypeHelper.getClassOrInterfaceType(field.getType())
+	 *
+	 * }
+	 *
 	 * @param type given type
 	 * @return maybe a class or interface type
 	 */
@@ -82,8 +89,7 @@ final class TypeHelper {
 	}
 
 	/**
-	 * Finds the qualified types of all classes within given compilation unit
-	 * including the inner classes.
+	 * Finds the qualified types of all inner classes within given compilation unit.
 	 *
 	 * @param unit compilation unit
 	 * @return set of qualified types

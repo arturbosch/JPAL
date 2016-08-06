@@ -25,7 +25,7 @@ class NodeHelperTest extends Specification {
 
 	def "find fields and methods"() {
 		given:
-		def clazz = Helper.first(Helper.compile(Helper.CYCLE_DUMMY))
+		def clazz = Helper.firstClass(Helper.compile(Helper.CYCLE_DUMMY))
 
 		when:
 		def fields = NodeHelper.findFields(clazz)

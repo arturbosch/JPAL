@@ -13,7 +13,7 @@ class ClassHelperTest extends Specification {
 		ClassHelper.hasNoMethods(aClass)
 		ClassHelper.isEmptyBody(aClass)
 		where:
-		aClass = Helper.first(Helper.compile(Helper.EMPTY_DUMMY))
+		aClass = Helper.firstClass(Helper.compile(Helper.EMPTY_DUMMY))
 	}
 
 	def "method is within class scope"() {
@@ -21,7 +21,7 @@ class ClassHelperTest extends Specification {
 		ClassHelper.inClassScope(aMethod, aClass.name)
 		where:
 		unit = Helper.compile(Helper.CYCLE_DUMMY)
-		aClass = Helper.first(unit)
+		aClass = Helper.firstClass(unit)
 		aMethod = Helper.nth(unit, 0)
 	}
 }

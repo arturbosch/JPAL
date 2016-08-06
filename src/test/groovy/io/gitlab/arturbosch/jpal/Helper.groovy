@@ -4,6 +4,7 @@ import com.github.javaparser.ASTHelper
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
+import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.IOGroovyMethods
@@ -30,10 +31,14 @@ class Helper {
 	}
 
 	static MethodDeclaration nth(CompilationUnit unit, int n) {
-		ASTHelper.getNodesByType(unit, MethodDeclaration.class).get(n)
+		return ASTHelper.getNodesByType(unit, MethodDeclaration.class).get(n)
 	}
 
-	static ClassOrInterfaceDeclaration first(CompilationUnit unit) {
-		ASTHelper.getNodesByType(unit, ClassOrInterfaceDeclaration.class).first()
+	static ClassOrInterfaceDeclaration firstClass(CompilationUnit unit) {
+		return ASTHelper.getNodesByType(unit, ClassOrInterfaceDeclaration.class).first()
+	}
+
+	static FieldDeclaration nth(ClassOrInterfaceDeclaration clazz, int n) {
+		return ASTHelper.getNodesByType(clazz, FieldDeclaration.class).get(n)
 	}
 }
