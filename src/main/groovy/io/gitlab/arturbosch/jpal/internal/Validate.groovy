@@ -1,6 +1,8 @@
 package io.gitlab.arturbosch.jpal.internal
 
-import groovy.transform.CompileStatic;
+import groovy.transform.CompileStatic
+
+import java.util.stream.Stream;
 
 /**
  * @author artur
@@ -15,6 +17,13 @@ public final class Validate {
 		if (!expression) {
 			throw new IllegalArgumentException(message);
 		}
+	}
+
+	public static notEmpty(String object) {
+		if (object == null || object.isEmpty()) {
+			throw new IllegalArgumentException("Provided argument is null!");
+		}
+		return object;
 	}
 
 	public static <T> T notNull(T object) {
