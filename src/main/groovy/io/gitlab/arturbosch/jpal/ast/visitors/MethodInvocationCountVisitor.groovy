@@ -2,6 +2,7 @@ package io.gitlab.arturbosch.jpal.ast.visitors
 
 import com.github.javaparser.ast.expr.MethodCallExpr
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
+import groovy.transform.CompileStatic
 
 /**
  * Visits method call expressions and count them if they match the searched name or
@@ -9,6 +10,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter
  *
  * @author artur
  */
+@CompileStatic
 class MethodInvocationCountVisitor extends VoidVisitorAdapter {
 
 	private int count

@@ -10,14 +10,18 @@ import com.github.javaparser.ast.expr.ObjectCreationExpr
 import com.github.javaparser.ast.stmt.ExpressionStmt
 import com.github.javaparser.ast.stmt.ReturnStmt
 import com.github.javaparser.ast.stmt.Statement
+import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.visitors.MethodInvocationCountVisitor
 import io.gitlab.arturbosch.jpal.internal.Validate
+
+import java.util.stream.Collectors
 
 /**
  * Provides static helper methods to use on method declarations.
  *
  * @author artur
  */
+@CompileStatic
 final class MethodHelper {
 
 	/**
@@ -28,8 +32,8 @@ final class MethodHelper {
 	 */
 	static List<Parameter> extractParameters(BodyDeclaration n) {
 		Validate.notNull(n)
-		return n instanceof ConstructorDeclaration ? n.parameters :
-				n instanceof MethodDeclaration ? n.parameters : Collections.emptyList()
+		return (n instanceof ConstructorDeclaration ? n.parameters :
+				n instanceof MethodDeclaration ? n.parameters : Collections.emptyList()) as List<Parameter>
 	}
 
 	/**
@@ -114,7 +118,7 @@ final class MethodHelper {
 	 * @return filtered methods
 	 */
 	static List<MethodDeclaration> filterAnonymousMethods(List<MethodDeclaration> methods) {
-		return methods.stream().filter { !isAnonymousMethod(it) }.collect()
+		return methods.stream().filter { !isAnonymousMethod(it) }.collect(Collectors.toList())
 	}
 
 	/**
