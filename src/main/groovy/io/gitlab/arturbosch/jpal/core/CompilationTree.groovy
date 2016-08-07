@@ -7,7 +7,7 @@ import com.github.javaparser.TokenMgrException
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.ImportDeclaration
 import com.github.javaparser.ast.expr.MethodCallExpr
-import com.github.javaparser.ast.type.ClassOrInterfaceType
+import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.SmartCache
 import io.gitlab.arturbosch.jpal.internal.StreamCloser
 import io.gitlab.arturbosch.jpal.internal.Validate
@@ -22,34 +22,73 @@ import java.util.stream.Stream
 /**
  * @author artur
  */
-class CompilationTree {
-
-	private static SmartCache<String, Path> qualifiedNameToPathCache =
-			new SmartCache<String, Path>()
-	private static SmartCache<Path, CompilationUnit> pathToCompilationUnitCache =
-			new SmartCache<Path, CompilationUnit>()
+final class CompilationTree {
 
 	private static Path root
 
-	private static Optional<CompilationUnit> getUnit(Path path) {
-		return Optional.ofNullable(pathToCompilationUnitCache.getOrDefault(path))
+	private static SmartCache<String, Path> qualifiedNameToPathCache = new SmartCache<String, Path>()
+	private static SmartCache<Path, CompilationUnit> pathToCompilationUnitCache =
+			new SmartCache<Path, CompilationUnit>()
+
+	/**
+	 * Registers the root. Needs to be called before any action on compilation tree should be used.
+	 * @param path project root path
+	 */
+	static void registerRoot(Path path) {
+		root = Validate.notNull(path)
 	}
 
-	private static Optional<CompilationUnit> compileFor(Path path) {
-		return IOGroovyMethods.withCloseable(Files.newInputStream(path)) {
-			try {
-				CompilationUnit compilationUnit = JavaParser.parse(it)
-				pathToCompilationUnitCache.put(path, compilationUnit)
-				Optional.of(compilationUnit)
-			} catch (ParseException | TokenMgrException ignored) {
-				Optional.empty()
-			}
-		}
+	/**
+	 * @return tests if the compilation tree was initialized
+	 */
+	static boolean isInitialized() {
+		return root != null
 	}
 
-	static Optional<Path> findReferencedType(QualifiedType qualifiedType) {
+	/**
+	 * Resets the caches compilation units. Mainly used for tests.
+	 */
+	static void reset() {
+		qualifiedNameToPathCache.reset()
+		pathToCompilationUnitCache.reset()
+	}
 
-		def maybePath = Optional.ofNullable(qualifiedNameToPathCache.getOrDefault(qualifiedType.name))
+	/**
+	 * Searches for the compilation unit which should be located beneath given path.
+	 * If given path is not present within the internal cache, this method tries to
+	 * create a new compilation unit for this path.
+	 *
+	 * @param path path to a class
+	 * @return maybe the compilation unit if no compile errors occur
+	 */
+	static Optional<CompilationUnit> findCompilationUnit(Path path) {
+		def maybeUnit = pathToCompilationUnitCache.get(path)
+		return maybeUnit.isPresent() ? maybeUnit : compileFor(path)
+	}
+
+	/**
+	 * Searches for the compilation unit which is described in given qualified type.
+	 * This method make calls to the file system if no path for this type was cached before.
+	 *
+	 * @param qualifiedType given type
+	 * @return maybe the compilation unit to this type, can be empty if no matching path is found
+	 * or the path is found but the compilation uni cannot be created
+	 */
+	static Optional<CompilationUnit> findCompilationUnit(QualifiedType qualifiedType) {
+		Validate.notNull(qualifiedType)
+		return findPathFor(qualifiedType).map { compileFor(it) }
+				.map { it.isPresent() ? it.get() : Optional.empty() } as Optional<CompilationUnit>
+
+	}
+
+	/**
+	 * Searches for the corresponding path of given ualified type.
+	 *
+	 * @param qualifiedType given type
+	 * @return maybe the path it is reachable from the root
+	 */
+	static Optional<Path> findPathFor(QualifiedType qualifiedType) {
+		def maybePath = qualifiedNameToPathCache.get(qualifiedType.name)
 
 		if (maybePath.isPresent()) {
 			return maybePath
@@ -67,79 +106,24 @@ class CompilationTree {
 
 			return pathToQualifier
 		}
-
-	}
-
-	static int findReferencesFor(QualifiedType qualifiedType) {
-		int references = 0
-		findReferencesFor(qualifiedType, { references++ })
-		return references
-	}
-
-	static int countMethodInvocations(QualifiedType qualifiedType, Collection<String> methods) {
-		int calls = 0
-		findReferencesFor(qualifiedType, {
-			calls = ASTHelper.getNodesByType(it, MethodCallExpr.class)
-					.stream()
-					.filter { methods.contains(it.name) }
-					.mapToInt { 1 }
-					.sum()
-		})
-		return calls
-	}
-
-	static void findReferencesFor(QualifiedType qualifiedType, Consumer<CompilationUnit> code) {
-		def walker = getJavaFilteredFileStream()
-		walker.forEach {
-			getCompilationUnit(it)
-					.ifPresent {
-
-				List<ImportDeclaration> imports = it.imports
-
-				Optional<ImportDeclaration> maybeImport = imports.stream()
-						.filter { it.name.toStringWithoutComments() == qualifiedType.name }
-						.findFirst()
-
-				if (maybeImport.isPresent()) {
-					code.accept(it)
-				} else if (searchForTypeWithinUnit(it, qualifiedType)) {
-					code.accept(it)
-				}
-
-			}
-
-		}
-		StreamCloser.quietly(walker)
 	}
 
 	private static Stream<Path> getJavaFilteredFileStream() {
 		Validate.notNull(root, "Compilation tree must be initialized first!")
-		Files.walk(root).filter { it.toString().endsWith(".java") }
+		return Files.walk(root).filter { it.toString().endsWith(".java") }
+				.filter { it.toString() != "package-info.java" } as Stream<Path>
 	}
 
-	static boolean searchForTypeWithinUnit(CompilationUnit unit, QualifiedType qualifiedType) {
-		def shortName = qualifiedType.shortName()
-		def types = ASTHelper.getNodesByType(unit, ClassOrInterfaceType.class)
-		return types.any { it.name == shortName }
-	}
-
-	static Optional<CompilationUnit> getCompilationUnit(Path path) {
-		def maybeUnit = getUnit(path)
-		def unit
-		if (maybeUnit.isPresent()) {
-			unit = maybeUnit
-		} else {
-			unit = compileFor(path)
+	private static Optional<CompilationUnit> compileFor(Path path) {
+		return IOGroovyMethods.withCloseable(Files.newInputStream(path)) {
+			try {
+				CompilationUnit compilationUnit = JavaParser.parse(it)
+				pathToCompilationUnitCache.put(path, compilationUnit)
+				Optional.of(compilationUnit)
+			} catch (ParseException | TokenMgrException ignored) {
+				Optional.empty()
+			}
 		}
-		unit
 	}
 
-	static def registerRoot(Path path) {
-		root = path
-	}
-
-	static def reset() {
-		qualifiedNameToPathCache.reset()
-		pathToCompilationUnitCache.reset()
-	}
 }
