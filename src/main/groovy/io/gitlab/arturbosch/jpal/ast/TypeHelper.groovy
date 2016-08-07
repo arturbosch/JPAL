@@ -1,5 +1,6 @@
 package io.gitlab.arturbosch.jpal.ast
 
+import com.github.javaparser.ASTHelper
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.PackageDeclaration
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
@@ -8,6 +9,7 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType
 import com.github.javaparser.ast.type.ReferenceType
 import com.github.javaparser.ast.type.Type
 import groovy.transform.CompileStatic
+import io.gitlab.arturbosch.jpal.internal.Validate
 import io.gitlab.arturbosch.jpal.resolve.QualifiedType
 import io.gitlab.arturbosch.jpal.resolve.ResolutionData
 import io.gitlab.arturbosch.jpal.resolve.Resolver
@@ -111,6 +113,20 @@ final class TypeHelper {
 		} else {
 			return Collections.emptySet()
 		}
+	}
+
+	/**
+	 * Tests if given type is within given compilation unit.
+	 *
+	 * @param unit the compilation unit
+	 * @param qualifiedType searched type
+	 * @return true if found
+	 */
+	static boolean isTypePresentInCompilationUnit(CompilationUnit unit, QualifiedType qualifiedType) {
+		Validate.notNull(unit)
+		def shortName = Validate.notNull(qualifiedType).shortName()
+		def types = ASTHelper.getNodesByType(unit, ClassOrInterfaceType.class)
+		return types.any { it.name == shortName }
 	}
 
 }

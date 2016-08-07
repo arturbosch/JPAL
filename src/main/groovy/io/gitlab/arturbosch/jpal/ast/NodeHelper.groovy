@@ -113,4 +113,5 @@ final class NodeHelper {
 
 		return parent == null ? Optional.empty() : Optional.of(parent)
 	}
+
 }

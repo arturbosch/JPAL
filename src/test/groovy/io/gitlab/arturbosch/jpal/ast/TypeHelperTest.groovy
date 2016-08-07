@@ -60,4 +60,13 @@ class TypeHelperTest extends Specification {
 		innerClasses.size() == 2
 	}
 
+	def "inner class is present within compilation unit"() {
+		given: "a compilation unit and a inner class"
+		def cycle = Helper.compile(CYCLE_DUMMY)
+		def innerClass = TypeHelper.getQualifiedTypesOfInnerClasses(cycle)
+		when: "testing if inner class is within unit"
+		then: "test is true"
+		TypeHelper.isTypePresentInCompilationUnit(cycle, innerClass[0])
+	}
+
 }
