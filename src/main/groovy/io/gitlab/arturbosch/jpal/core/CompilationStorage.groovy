@@ -6,6 +6,7 @@ import com.github.javaparser.ParseException
 import com.github.javaparser.TokenMgrException
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
+import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.SmartCache
 import io.gitlab.arturbosch.jpal.internal.StreamCloser
@@ -19,6 +20,8 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ForkJoinPool
 import java.util.logging.Logger
 import java.util.stream.Stream
+
+import static io.gitlab.arturbosch.jpal.core.CompilationStorage.*
 
 /**
  * Adds cross referencing ability to javaparser by storing all compilation units
@@ -47,6 +50,7 @@ import java.util.stream.Stream
  *
  * @author artur
  */
+@CompileStatic
 final class CompilationStorage {
 
 	private static CompilationStorage storage;
@@ -75,8 +79,8 @@ final class CompilationStorage {
 		Stream<Path> walker = getJavaFilteredFileStream()
 		walker.forEach { path ->
 			futures.add(CompletableFuture
-					.supplyAsync({ compileFor(path) }, forkJoinPool)
-					.exceptionally { logCompilationFailure(path) })
+					.runAsync({ compileFor(path as Path) }, forkJoinPool)
+					.exceptionally { logCompilationFailure(path as Path) })
 		}
 
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
@@ -85,7 +89,7 @@ final class CompilationStorage {
 
 	}
 
-	private void compileFor(Path path) {
+	private static void compileFor(Path path) {
 		IOGroovyMethods.withCloseable(Files.newInputStream(path)) {
 			try {
 				def unit = JavaParser.parse(it)
@@ -102,13 +106,13 @@ final class CompilationStorage {
 		return ASTHelper.getNodesByType(compilationUnit, ClassOrInterfaceDeclaration.class).first()
 	}
 
-	private static logCompilationFailure(Path path) {
+	private static void logCompilationFailure(Path path) {
 		LOGGER.warning("Could not create compilation unit from: $path due to syntax errors.")
 	}
 
 	private Stream<Path> getJavaFilteredFileStream() {
 		return Files.walk(root).parallel().filter { it.toString().endsWith(".java") }
-				.filter { !it.toString().endsWith("package-info.java") }
+				.filter { it.toString() != "package-info.java" } as Stream<Path>
 	}
 
 	/**
