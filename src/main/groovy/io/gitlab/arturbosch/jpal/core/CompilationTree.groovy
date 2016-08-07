@@ -1,13 +1,9 @@
 package io.gitlab.arturbosch.jpal.core
 
-import com.github.javaparser.ASTHelper
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ParseException
 import com.github.javaparser.TokenMgrException
 import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.ImportDeclaration
-import com.github.javaparser.ast.expr.MethodCallExpr
-import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.SmartCache
 import io.gitlab.arturbosch.jpal.internal.StreamCloser
 import io.gitlab.arturbosch.jpal.internal.Validate
@@ -16,10 +12,22 @@ import org.codehaus.groovy.runtime.IOGroovyMethods
 
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.function.Consumer
 import java.util.stream.Stream
 
 /**
+ * Adds cross referencing ability to javaparser by loading and caching all compilation units
+ * on demand. Provides methods to find the compilation unit from a path or a qualified name.
+ *
+ * To obtain compilation unit's, use the convenient methods:
+ *
+ * {@code
+ * def maybeInfo = CompilationTree.findCompilationInfo(path)
+ * def maybeInfo = CompilationTree.findCompilationInfo(qualifiedType)
+ *}
+ *
+ * Don't use the compilation tree without initializing it.
+ * If unsure call {@code CompilationTree.isInitialized ( )}
+ *
  * @author artur
  */
 final class CompilationTree {

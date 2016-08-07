@@ -22,7 +22,8 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.stream.Stream
 
-import static io.gitlab.arturbosch.jpal.core.CompilationStorage.*
+import static io.gitlab.arturbosch.jpal.core.CompilationStorage.getFirstDeclaredClass
+import static io.gitlab.arturbosch.jpal.core.CompilationStorage.logCompilationFailure
 
 /**
  * Adds cross referencing ability to javaparser by storing all compilation units

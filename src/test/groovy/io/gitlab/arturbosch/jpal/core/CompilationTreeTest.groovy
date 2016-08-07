@@ -28,4 +28,13 @@ class CompilationTreeTest extends Specification {
 		then: "compilation unit of the cycle dummy is found"
 		unit.isPresent()
 	}
+
+	def "find compilation unit from a path"() {
+		given: "a path to the cycle dummy"
+		def path = Helper.CYCLE_DUMMY
+		when: "searching for corresponding compilation unit"
+		def unit = CompilationTree.findCompilationUnit(path)
+		then: "compilation unit of the cycle dummy is found"
+		unit.isPresent()
+	}
 }

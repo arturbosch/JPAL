@@ -2,8 +2,6 @@ package io.gitlab.arturbosch.jpal.internal
 
 import groovy.transform.CompileStatic
 
-import java.util.stream.Stream;
-
 /**
  * @author artur
  */
