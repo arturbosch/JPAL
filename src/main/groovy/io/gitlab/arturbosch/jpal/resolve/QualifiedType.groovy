@@ -20,7 +20,8 @@ class QualifiedType {
 	final TypeToken typeToken
 
 	/**
-	 * Type of the type.
+	 * Nature of the type. Should be self explained.
+	 * Unknown types means that the resolver could not retrieve the qualified type.
 	 */
 	@CompileStatic
 	enum TypeToken {

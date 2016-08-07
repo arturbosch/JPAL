@@ -18,6 +18,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ForkJoinPool
+import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.stream.Stream
 
@@ -80,7 +81,7 @@ final class CompilationStorage {
 		walker.forEach { path ->
 			futures.add(CompletableFuture
 					.runAsync({ compileFor(path as Path) }, forkJoinPool)
-					.exceptionally { logCompilationFailure(path as Path) })
+					.exceptionally { logCompilationFailure(path as Path, it) })
 		}
 
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
@@ -89,7 +90,7 @@ final class CompilationStorage {
 
 	}
 
-	private static void compileFor(Path path) {
+	private void compileFor(Path path) {
 		IOGroovyMethods.withCloseable(Files.newInputStream(path)) {
 			try {
 				def unit = JavaParser.parse(it)
@@ -106,8 +107,8 @@ final class CompilationStorage {
 		return ASTHelper.getNodesByType(compilationUnit, ClassOrInterfaceDeclaration.class).first()
 	}
 
-	private static void logCompilationFailure(Path path) {
-		LOGGER.warning("Could not create compilation unit from: $path due to syntax errors.")
+	private static void logCompilationFailure(Path path, Throwable error) {
+		LOGGER.log(Level.SEVERE, "Error while compiling $path occurred", error)
 	}
 
 	private Stream<Path> getJavaFilteredFileStream() {
