@@ -4,6 +4,7 @@ import com.github.javaparser.JavaParser
 import com.github.javaparser.ParseException
 import com.github.javaparser.TokenMgrException
 import com.github.javaparser.ast.CompilationUnit
+import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.internal.SmartCache
 import io.gitlab.arturbosch.jpal.internal.StreamCloser
 import io.gitlab.arturbosch.jpal.internal.Validate
@@ -30,6 +31,7 @@ import java.util.stream.Stream
  *
  * @author artur
  */
+@CompileStatic
 final class CompilationTree {
 
 	private static Path root
@@ -131,7 +133,7 @@ final class CompilationTree {
 			} catch (ParseException | TokenMgrException ignored) {
 				Optional.empty()
 			}
-		}
+		} as Optional<CompilationUnit>
 	}
 
 }
