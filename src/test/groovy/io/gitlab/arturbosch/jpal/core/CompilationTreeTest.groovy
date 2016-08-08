@@ -13,6 +13,7 @@ class CompilationTreeTest extends Specification {
 
 	def "setup"() {
 		CompilationTree.registerRoot(root)
+		assert CompilationTree.isInitialized()
 	}
 
 	def "cleanup"() {

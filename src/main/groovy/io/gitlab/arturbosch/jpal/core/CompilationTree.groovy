@@ -34,9 +34,8 @@ final class CompilationTree {
 
 	private static Path root
 
-	private static SmartCache<String, Path> qualifiedNameToPathCache = new SmartCache<String, Path>()
-	private static SmartCache<Path, CompilationUnit> pathToCompilationUnitCache =
-			new SmartCache<Path, CompilationUnit>()
+	private static SmartCache<QualifiedType, Path> qualifiedNameToPathCache = new SmartCache<>()
+	private static SmartCache<Path, CompilationUnit> pathToCompilationUnitCache = new SmartCache<>()
 
 	/**
 	 * Registers the root. Needs to be called before any action on compilation tree should be used.
@@ -96,7 +95,7 @@ final class CompilationTree {
 	 * @return maybe the path it is reachable from the root
 	 */
 	static Optional<Path> findPathFor(QualifiedType qualifiedType) {
-		def maybePath = qualifiedNameToPathCache.get(qualifiedType.name)
+		def maybePath = qualifiedNameToPathCache.get(qualifiedType)
 
 		if (maybePath.isPresent()) {
 			return maybePath
@@ -110,7 +109,7 @@ final class CompilationTree {
 					.map { it.toAbsolutePath().normalize() }
 			StreamCloser.quietly(walker)
 
-			pathToQualifier.ifPresent { qualifiedNameToPathCache.put(qualifiedType.name, it) }
+			pathToQualifier.ifPresent { qualifiedNameToPathCache.put(qualifiedType, it) }
 
 			return pathToQualifier
 		}
