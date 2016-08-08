@@ -52,9 +52,9 @@ final class Resolver {
 			if (realType.isBoxedType()) {
 				return new QualifiedType("java.lang." + realType.name, QualifiedType.TypeToken.BOXED_PRIMITIVE)
 			} else {
-				String name = realType.toString()
+				String name = realType.name
 				def imports = data.imports
-				if (imports.entrySet().contains(name)) {
+				if (imports.keySet().contains(name)) {
 					String qualifiedName = imports.get(name)
 					return new QualifiedType(qualifiedName, QualifiedType.TypeToken.REFERENCE)
 				} else {
