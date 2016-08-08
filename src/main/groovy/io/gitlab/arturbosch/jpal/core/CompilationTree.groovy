@@ -89,18 +89,19 @@ final class CompilationTree {
 	}
 
 	/**
-	 * Searches for the corresponding path of given ualified type.
+	 * Searches for the corresponding path of given qualified type.
 	 *
 	 * @param qualifiedType given type
 	 * @return maybe the path it is reachable from the root
 	 */
 	static Optional<Path> findPathFor(QualifiedType qualifiedType) {
-		def maybePath = qualifiedNameToPathCache.get(qualifiedType)
+		def qualifiedRootType = qualifiedType.asOuterClass()
+		def maybePath = qualifiedNameToPathCache.get(qualifiedRootType)
 
 		if (maybePath.isPresent()) {
 			return maybePath
 		} else {
-			def search = qualifiedType.asStringPathToJavaFile()
+			def search = qualifiedRootType.asStringPathToJavaFile()
 
 			def walker = getJavaFilteredFileStream()
 			def pathToQualifier = walker
@@ -109,7 +110,7 @@ final class CompilationTree {
 					.map { it.toAbsolutePath().normalize() }
 			StreamCloser.quietly(walker)
 
-			pathToQualifier.ifPresent { qualifiedNameToPathCache.put(qualifiedType, it) }
+			pathToQualifier.ifPresent { qualifiedNameToPathCache.put(qualifiedRootType, it) }
 
 			return pathToQualifier
 		}
