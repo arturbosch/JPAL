@@ -18,6 +18,7 @@ class CompilationStorageTest extends Specification {
 	def "domain tests"() {
 		given:
 		CompilationStorage.create(Helper.BASE_PATH)
+		assert CompilationStorage.isInitialized()
 
 		when: "retrieving all compilation info"
 		def info = CompilationStorage.allCompilationInfo
@@ -27,9 +28,11 @@ class CompilationStorageTest extends Specification {
 
 		when: "retrieving a specific type (cycle)"
 		def cycleInfo = CompilationStorage.getCompilationInfo(cycleType).get()
+		def cycleInfoFromPath = CompilationStorage.getCompilationInfo(Helper.CYCLE_DUMMY).get()
 
 		then: "it should have 2 inner classes"
 		cycleInfo.innerClasses.size() == 2
+		cycleInfoFromPath.innerClasses.size() == 2
 
 		when: "retrieving info for a inner class"
 		def infoFromInnerClass = CompilationStorage.getCompilationInfo(innerCycleType).get()
@@ -37,5 +40,10 @@ class CompilationStorageTest extends Specification {
 		then: "it should return info of outer class"
 		infoFromInnerClass.qualifiedType == cycleType
 
+		when: "getting all qualified types which are already stored"
+		def types = CompilationStorage.getAllQualifiedTypes()
+
+		then: "it must be greater or equals the amount of classes in dummies package (now 3)"
+		types.size() >= 3
 	}
 }
