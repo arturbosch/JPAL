@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap
  * @author Artur
  */
 @CompileStatic
-public class SmartCache<K, V> {
+final public class SmartCache<K, V> {
 
 	private final Map<K, V> cache = new ConcurrentHashMap<>();
 

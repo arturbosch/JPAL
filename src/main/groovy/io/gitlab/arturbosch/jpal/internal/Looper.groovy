@@ -6,7 +6,7 @@ import groovy.transform.CompileStatic
  * @author artur
  */
 @CompileStatic
-class Looper {
+final class Looper {
 	private Closure code
 
 	static Looper loop(Closure code) {
