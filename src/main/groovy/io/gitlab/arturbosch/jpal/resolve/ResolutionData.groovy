@@ -4,7 +4,6 @@ import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.ImportDeclaration
 import com.github.javaparser.ast.PackageDeclaration
 import groovy.transform.CompileStatic
-
 import io.gitlab.arturbosch.jpal.internal.Validate
 
 /**
@@ -37,7 +36,9 @@ class ResolutionData {
 	ResolutionData(PackageDeclaration packageDeclaration, List<ImportDeclaration> imports) {
 		this.packageName = Optional.ofNullable(packageDeclaration)
 				.map { it.packageName }.orElse("")
-		this.imports = Validate.notNull(imports).collectEntries {
+		this.imports = Validate.notNull(imports).grep {
+			!(it as ImportDeclaration).isEmptyImportDeclaration()
+		}.collectEntries {
 			[it.name.name, it.name.toStringWithoutComments()]
 		}
 	}
