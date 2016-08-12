@@ -5,9 +5,9 @@ import com.github.javaparser.JavaParser
 import com.github.javaparser.ParseException
 import com.github.javaparser.TokenMgrException
 import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
+import com.github.javaparser.ast.PackageDeclaration
+import com.github.javaparser.ast.body.TypeDeclaration
 import groovy.transform.CompileStatic
-import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.SmartCache
 import io.gitlab.arturbosch.jpal.internal.StreamCloser
 import io.gitlab.arturbosch.jpal.internal.Validate
@@ -92,7 +92,7 @@ final class CompilationStorage {
 		IOGroovyMethods.withCloseable(Files.newInputStream(path)) {
 			try {
 				def unit = JavaParser.parse(it)
-				def type = TypeHelper.getQualifiedType(getFirstDeclaredClass(unit), unit.package)
+				def type = getQualifiedType(getFirstDeclaredClass(unit), unit.package)
 				def compilationInfo = CompilationInfo.of(type, unit, path)
 				typeCache.put(type, compilationInfo)
 				pathCache.put(path, compilationInfo)
@@ -101,8 +101,12 @@ final class CompilationStorage {
 		}
 	}
 
-	private static ClassOrInterfaceDeclaration getFirstDeclaredClass(CompilationUnit compilationUnit) {
-		return ASTHelper.getNodesByType(compilationUnit, ClassOrInterfaceDeclaration.class).first()
+	private static TypeDeclaration getFirstDeclaredClass(CompilationUnit compilationUnit) {
+		return ASTHelper.getNodesByType(compilationUnit, TypeDeclaration.class).first()
+	}
+
+	private static QualifiedType getQualifiedType(TypeDeclaration n, PackageDeclaration packageDeclaration) {
+		return new QualifiedType("$packageDeclaration.packageName.$n.name", QualifiedType.TypeToken.REFERENCE)
 	}
 
 	private static void logCompilationFailure(Path path, Throwable error) {
@@ -111,7 +115,7 @@ final class CompilationStorage {
 
 	private Stream<Path> getJavaFilteredFileStream() {
 		return Files.walk(root).parallel().filter { it.toString().endsWith(".java") }
-				.filter { it.toString() != "package-info.java" } as Stream<Path>
+				.filter { !it.toString().endsWith("package-info.java") } as Stream<Path>
 	}
 
 	/**
