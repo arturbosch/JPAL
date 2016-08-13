@@ -24,6 +24,8 @@ import java.util.stream.Collectors
 @CompileStatic
 final class TypeHelper {
 
+	public static final String DEFAULT_PACKAGE = "<default>"
+
 	private TypeHelper() {}
 
 	/**
@@ -90,8 +92,22 @@ final class TypeHelper {
 	 * @return a qualified type consisting of the package name and the type name - be aware it is handled
 	 * as a reference type
 	 */
-	static QualifiedType getQualifiedType(ClassOrInterfaceDeclaration n, PackageDeclaration packageDeclaration) {
-		return new QualifiedType("$packageDeclaration.packageName.$n.name", QualifiedType.TypeToken.REFERENCE)
+	static QualifiedType getQualifiedTypeFromPackage(TypeDeclaration n, PackageDeclaration packageDeclaration) {
+		return new QualifiedType("${packageDeclaration?.packageName ?: DEFAULT_PACKAGE}.$n.name", QualifiedType.TypeToken.REFERENCE)
+	}
+
+	/**
+	 * Tests if given type is within given compilation unit.
+	 *
+	 * @param unit the compilation unit
+	 * @param qualifiedType searched type
+	 * @return true if found
+	 */
+	static boolean isTypePresentInCompilationUnit(CompilationUnit unit, QualifiedType qualifiedType) {
+		Validate.notNull(unit)
+		def shortName = Validate.notNull(qualifiedType).shortName()
+		def types = ASTHelper.getNodesByType(unit, ClassOrInterfaceType.class)
+		return types.any { it.name == shortName }
 	}
 
 	/**
@@ -113,20 +129,6 @@ final class TypeHelper {
 		} else {
 			return Collections.emptySet()
 		}
-	}
-
-	/**
-	 * Tests if given type is within given compilation unit.
-	 *
-	 * @param unit the compilation unit
-	 * @param qualifiedType searched type
-	 * @return true if found
-	 */
-	static boolean isTypePresentInCompilationUnit(CompilationUnit unit, QualifiedType qualifiedType) {
-		Validate.notNull(unit)
-		def shortName = Validate.notNull(qualifiedType).shortName()
-		def types = ASTHelper.getNodesByType(unit, ClassOrInterfaceType.class)
-		return types.any { it.name == shortName }
 	}
 
 }

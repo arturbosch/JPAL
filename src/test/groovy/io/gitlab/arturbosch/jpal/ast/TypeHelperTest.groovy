@@ -18,6 +18,18 @@ class TypeHelperTest extends Specification {
 	ClassOrInterfaceDeclaration clazz = Helper.firstClass(unit)
 	FieldDeclaration field = Helper.nth(clazz, 0)
 
+	def "type helper considers default package"() {
+		given: "class is within default package"
+		def unit = Helper.compile(Helper.NO_PACKAGE_DUMMY)
+		def clazz = Helper.firstClass(unit)
+		when: "searching for class type"
+		def qualifiedType = TypeHelper.getQualifiedTypeFromPackage(clazz, unit.package)
+		def qualifiedTypeUnit = TypeHelper.getQualifiedType(clazz, unit)
+		then: "<default> is package name"
+		qualifiedType.name == "<default>.NoPackage"
+		qualifiedTypeUnit.name == "<default>.NoPackage"
+	}
+
 	def "get the class type from just a javaparser type"() {
 		given: "plain type object"
 		def type = field.getType()
@@ -46,7 +58,7 @@ class TypeHelperTest extends Specification {
 	def "qualified type for class declaration and the package name"() {
 		given: "a class declaration and a package name"
 		when: "searching for the qualified type"
-		def qualifiedType = TypeHelper.getQualifiedType(clazz, unit.package)
+		def qualifiedType = TypeHelper.getQualifiedTypeFromPackage(clazz, unit.package)
 		then: "the qualified type is build upon the package name"
 		qualifiedType.name == "io.gitlab.arturbosch.jpal.dummies.Dummy"
 	}

@@ -19,7 +19,7 @@ import io.gitlab.arturbosch.jpal.internal.JdkHelper
  * 	ClassOrInterfaceType myType = ...
  * 	CompilationUnit unit = ...
  * 	ResolutionData data = ResolutionData.of(unit)
- * 	QualifiedType qualifiedType = Resolver.getQualifiedType(data, myType)
+ * 	QualifiedType qualifiedType = Resolver.getQualifiedTypeFromPackage(data, myType)
  *
  *}
  *

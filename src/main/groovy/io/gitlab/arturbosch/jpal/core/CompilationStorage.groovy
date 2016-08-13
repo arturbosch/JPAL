@@ -5,9 +5,9 @@ import com.github.javaparser.JavaParser
 import com.github.javaparser.ParseException
 import com.github.javaparser.TokenMgrException
 import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.PackageDeclaration
 import com.github.javaparser.ast.body.TypeDeclaration
 import groovy.transform.CompileStatic
+import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.SmartCache
 import io.gitlab.arturbosch.jpal.internal.StreamCloser
 import io.gitlab.arturbosch.jpal.internal.Validate
@@ -92,7 +92,9 @@ final class CompilationStorage {
 		IOGroovyMethods.withCloseable(Files.newInputStream(path)) {
 			try {
 				def unit = JavaParser.parse(it)
-				def type = getQualifiedType(getFirstDeclaredClass(unit), unit.package)
+				if (unit.types.isEmpty()) return
+				def clazz = getFirstDeclaredClass(unit)
+				def type = TypeHelper.getQualifiedTypeFromPackage(clazz, unit.package)
 				def compilationInfo = CompilationInfo.of(type, unit, path)
 				typeCache.put(type, compilationInfo)
 				pathCache.put(path, compilationInfo)
@@ -103,10 +105,6 @@ final class CompilationStorage {
 
 	private static TypeDeclaration getFirstDeclaredClass(CompilationUnit compilationUnit) {
 		return ASTHelper.getNodesByType(compilationUnit, TypeDeclaration.class).first()
-	}
-
-	private static QualifiedType getQualifiedType(TypeDeclaration n, PackageDeclaration packageDeclaration) {
-		return new QualifiedType("$packageDeclaration.packageName.$n.name", QualifiedType.TypeToken.REFERENCE)
 	}
 
 	private static void logCompilationFailure(Path path, Throwable error) {

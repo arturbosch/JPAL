@@ -23,6 +23,7 @@ class Helper {
 	static Path DUMMY = BASE_PATH.resolve("Dummy.java")
 	static Path EMPTY_DUMMY = BASE_PATH.resolve("EmptyDummy.java")
 	static Path CYCLE_DUMMY = BASE_PATH.resolve("CycleDummy.java")
+	static Path NO_PACKAGE_DUMMY = Paths.get("./src/test/resources/NoPackage.java")
 
 	static CompilationUnit compile(Path path) {
 		return IOGroovyMethods.withCloseable(Files.newInputStream(path)) {
