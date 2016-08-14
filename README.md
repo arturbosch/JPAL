@@ -1,6 +1,7 @@
 # JPAL - Javaparser Aid Library
 
-Jpal is a library
+Jpal is a library for javaparser which provides additional features
+like cross referencing, qualified types and other useful classes.
 
 ## Table of contents
 1. [Build](#build)
