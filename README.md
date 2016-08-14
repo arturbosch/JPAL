@@ -108,6 +108,15 @@ The resolver checks for following situations:
 
 - Star imports are not considered right now (planned for 1.0)
 
+## <a name="helpers">Helpers - Useful Classes</a>
+
+- ClassHelper - signatures, scope check etc
+- LocaleVariableHelper - finds locale variable within a method
+- MethodHelper - getter/setter/anonymous method checks etc
+- NodeHelper - find (declaring) nodes
+- TypeHelper - get qualified types
+- VariableHelper - transforms parameters/fields/locale vars to JpalVariables
+
 ## <a name="faq">FAQ</a>
 
 #### How to create qualified types for inner classes?
