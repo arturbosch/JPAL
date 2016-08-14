@@ -23,7 +23,9 @@ analyzes given project path and caches all compilation units.
 Compilation units are wrapped into CompilationInfo's which stores 
 additional information like used qualified types within this unit.
 
-```CompilationStorage.create(projectPath)```
+```java
+CompilationStorage.create(projectPath)
+```
 
 Obtaining a compilation info can be done through two methods:
 
@@ -36,7 +38,9 @@ def maybeInfo = CompilationStorage.getCompilationInfo(qualifiedType)
 
 The project root path should be provided before the AST usage.
 
-```CompilationTree.registerRoot(projectPath)```
+```java
+CompilationTree.registerRoot(projectPath)
+```
 
 Now the compilation unit can be obtained by searching for paths
 and qualified types. Is no compilation unit cached the path/type is 
@@ -83,7 +87,9 @@ ResolutionData.of(unit)
 The Resolver tries to build the qualified type for given `Type` and the 
 `ResolutionData`:
 
-```Resolver.getQualifiedType(data, type)```
+```java
+Resolver.getQualifiedType(data, type)
+```
 
 The resolver checks for following situations:
 
