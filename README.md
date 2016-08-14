@@ -2,14 +2,22 @@
 
 Jpal is a library
 
-## Build
+## Table of contents
+1. [Build](#build)
+2. [Cross Referencing](#cross)
+3. [Helpers](#helpers)
+4. [FAQ](#faq)
+4. [Contribute](#contribute)
+4. [Who uses JPAL](#usage)
+
+## <a name="build">Build</a>
 
 - Make sure gradle is installed
 - Download the jpal git repository
 - Use gradle clean build publishToMavenLocal
 - This will install the library into your local m2 folder
 
-## Cross referencing
+## <a name="cross">Cross Referencing</a>
 
 Is provided by type resolving and caching of qualified types, paths
 and compilation units.
@@ -100,7 +108,7 @@ The resolver checks for following situations:
 
 - Star imports are not considered right now (planned for 1.0)
 
-## FAQ
+## <a name="faq">FAQ</a>
 
 #### How to create qualified types for inner classes?
 
@@ -139,7 +147,7 @@ If these checks are not needed use:
 ClassHelper.createSignature(ClassOrInterfaceDeclaration n)
 ```
 
-#### What information is stored within a CompilationInfo
+#### What information is stored within a CompilationInfo?
 
 ```
 final QualifiedType qualifiedType
@@ -148,3 +156,12 @@ final Path path
 final List<QualifiedType> usedTypes
 final Set<QualifiedType> innerClasses
 ```
+
+## <a name="contribute">How to contribute?</a>
+
+- Report Bugs or make feature requests through issues
+- Push merge requests
+
+## <a name="usage">Who uses JPAL?</a>
+
+- SmartSmells (https://gitlab.com/arturbosch/SmartSmells/)
