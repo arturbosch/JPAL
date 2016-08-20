@@ -92,7 +92,7 @@ class VariableHelper {
 	/**
 	 * From parameters to jpal variables.
 	 */
-	static Set<JpalVariable> toJpalVariables(List<Parameter> parameters) {
+	static Set<JpalVariable> toJpalFromParameters(List<Parameter> parameters) {
 		return parameters.stream().map { toJpalFromParameter(it) }.collect(Collectors.toSet())
 	}
 
