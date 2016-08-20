@@ -1,6 +1,7 @@
 package io.gitlab.arturbosch.jpal.dummies;
 
 import io.gitlab.arturbosch.jpal.Helper;
+import io.gitlab.arturbosch.jpal.dummies.test.*;
 
 /**
  * Don't touch this class, tests depend on exact token structure!
@@ -15,7 +16,8 @@ class CycleDummy {
 	}
 
 	private void meah() {
-		new Helper();
+		TestReference reference = new TestReference();
+		Helper helper = new Helper();
 	}
 
 	class InnerCycleOne {

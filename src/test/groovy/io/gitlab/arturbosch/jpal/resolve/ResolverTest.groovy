@@ -4,12 +4,28 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType
 import com.github.javaparser.ast.type.PrimitiveType
 import com.github.javaparser.ast.type.UnknownType
 import io.gitlab.arturbosch.jpal.Helper
+import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import spock.lang.Specification
 
 /**
  * @author artur
  */
 class ResolverTest extends Specification {
+
+	def setup() {
+		CompilationStorage.create(Helper.BASE_PATH)
+	}
+
+	def "get qualified type from imports"() {
+		given: "resolution data for cycle dummy with asterisk imports and initialized compilation storage"
+		def data = ResolutionData.of(Helper.compile(Helper.CYCLE_DUMMY))
+		when: "retrieving qualified type for two types"
+		def helper = Resolver.getQualifiedType(data, new ClassOrInterfaceType("Helper"))
+		def testReference = Resolver.getQualifiedType(data, new ClassOrInterfaceType("TestReference"))
+		then: "Helper type is retrieved from qualified import and TestReference from asterisk"
+		helper.name == "io.gitlab.arturbosch.jpal.Helper"
+		testReference.name == "io.gitlab.arturbosch.jpal.dummies.test.TestReference"
+	}
 
 	def "domain tests"() {
 		expect: "the right qualified types"

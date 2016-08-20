@@ -4,6 +4,7 @@ import com.github.javaparser.ast.type.PrimitiveType
 import com.github.javaparser.ast.type.Type
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
+import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import io.gitlab.arturbosch.jpal.internal.JdkHelper
 
 /**
@@ -32,7 +33,7 @@ final class Resolver {
 
 	/**
 	 * Tries to find the correct qualified name. Considered options are
-	 * primitives, boxed primitives, jdk types and reference types.
+	 * primitives, boxed primitives, jdk types and reference types within imports or the package.
 	 * This approach works on class or interface types as this type is searched
 	 * from within the given type.
 	 *
@@ -53,10 +54,9 @@ final class Resolver {
 				return new QualifiedType("java.lang." + realType.name, QualifiedType.TypeToken.BOXED_PRIMITIVE)
 			} else {
 				String name = realType.name
-				def imports = data.imports
-				if (imports.keySet().contains(name)) {
-					String qualifiedName = imports.get(name)
-					return new QualifiedType(qualifiedName, QualifiedType.TypeToken.REFERENCE)
+				def maybeFromImports = getFromImports(name, data)
+				if (maybeFromImports.isPresent()) {
+					return maybeFromImports.get()
 				} else {
 					if (JdkHelper.isPartOfJava(name)) {
 						return new QualifiedType("java.lang." + name, QualifiedType.TypeToken.JAVA_REFERENCE)
@@ -70,4 +70,18 @@ final class Resolver {
 		return new QualifiedType("UNKNOWN", QualifiedType.TypeToken.UNKNOWN)
 	}
 
+	private static Optional<QualifiedType> getFromImports(String name, ResolutionData data) {
+		def imports = data.imports
+		if (imports.keySet().contains(name)) {
+			String qualifiedName = imports.get(name)
+			return Optional.of(new QualifiedType(qualifiedName, QualifiedType.TypeToken.REFERENCE))
+		} else if (CompilationStorage.isInitialized()) {
+			return data.importsWithAsterisk.stream()
+					.map { new QualifiedType("$it.$name", QualifiedType.TypeToken.REFERENCE) }
+					.filter { CompilationStorage.getCompilationInfo(it).isPresent() }
+					.findFirst()
+
+		}
+		return Optional.empty()
+	}
 }

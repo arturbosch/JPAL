@@ -7,6 +7,8 @@ import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.Validate
 
+import java.util.stream.Collectors
+
 /**
  * Holds information of a compilation unit. Used by a resolver to access qualified types.
  *
@@ -17,6 +19,7 @@ class ResolutionData {
 
 	final String packageName
 	final Map<String, String> imports
+	final List<String> importsWithAsterisk;
 
 	/**
 	 * From a not null compilation unit a resolution data is constructed containing the
@@ -35,13 +38,19 @@ class ResolutionData {
 	 * @param imports imports to generate convenient type name to package structure map
 	 */
 	ResolutionData(PackageDeclaration packageDeclaration, List<ImportDeclaration> imports) {
+		Validate.notNull(imports)
+
 		this.packageName = Optional.ofNullable(packageDeclaration)
 				.map { it.packageName }.orElse(TypeHelper.DEFAULT_PACKAGE)
-		this.imports = Validate.notNull(imports).grep {
-			!(it as ImportDeclaration).isEmptyImportDeclaration()
-		}.collectEntries {
-			[it.name.name, it.name.toStringWithoutComments()]
-		}
+
+		this.imports = imports
+				.grep { !(it as ImportDeclaration).emptyImportDeclaration }
+				.grep { !(it as ImportDeclaration).asterisk }
+				.collectEntries { [it.name.name, it.name.toStringWithoutComments()] }
+
+		this.importsWithAsterisk = imports.stream()
+				.filter { it.asterisk }
+				.map { it.name.toStringWithoutComments() }.collect(Collectors.toList())
 	}
 
 }
