@@ -6,6 +6,7 @@ import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import io.gitlab.arturbosch.jpal.internal.JdkHelper
+import io.gitlab.arturbosch.jpal.internal.Validate
 
 /**
  * Provides a static method to resolve the full qualified name of a class type.
@@ -42,6 +43,9 @@ final class Resolver {
 	 * @return the qualified type of given type
 	 */
 	static QualifiedType getQualifiedType(ResolutionData data, Type type) {
+		Validate.notNull(data)
+		Validate.notNull(type)
+
 		if (type instanceof PrimitiveType) {
 			return new QualifiedType(type.type.toString(), QualifiedType.TypeToken.PRIMITIVE)
 		}
@@ -71,10 +75,14 @@ final class Resolver {
 	}
 
 	private static Optional<QualifiedType> getFromImports(String name, ResolutionData data) {
+		Validate.notEmpty(name)
+		def importName = trimInnerClasses(name)
+
 		def imports = data.imports
-		if (imports.keySet().contains(name)) {
-			String qualifiedName = imports.get(name)
-			return Optional.of(new QualifiedType(qualifiedName, QualifiedType.TypeToken.REFERENCE))
+		if (imports.keySet().contains(importName)) {
+			def qualifiedName = imports.get(importName)
+			def qualifiedNameWithInnerClass = qualifiedName.substring(0, qualifiedName.lastIndexOf('.') + 1) + name
+			return Optional.of(new QualifiedType(qualifiedNameWithInnerClass, QualifiedType.TypeToken.REFERENCE))
 		} else if (CompilationStorage.isInitialized()) {
 			return data.importsWithAsterisk.stream()
 					.map { new QualifiedType("$it.$name", QualifiedType.TypeToken.REFERENCE) }
@@ -83,5 +91,9 @@ final class Resolver {
 
 		}
 		return Optional.empty()
+	}
+
+	private static String trimInnerClasses(String name) {
+		name.contains(".") ? name.substring(0, name.indexOf('.')) : name
 	}
 }

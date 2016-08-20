@@ -84,9 +84,26 @@ class QualifiedType {
 	 */
 	QualifiedType asOuterClass() {
 		if (isInnerClass()) {
-			return new QualifiedType(name.substring(0, name.lastIndexOf(".")), typeToken)
+			return new QualifiedType(toOuterClass(), typeToken)
 		}
 		return this
+	}
+
+	private String toOuterClass() {
+		def lastChunk = getLastChunk(name)
+		def outerClassName = name.substring(0, name.lastIndexOf("."))
+		def currentChunk = getLastChunk(outerClassName)
+		while (!Character.isLowerCase(currentChunk.charAt(0))) {
+			lastChunk = currentChunk
+			outerClassName = outerClassName.substring(0, outerClassName.lastIndexOf("."))
+			currentChunk = getLastChunk(outerClassName)
+		}
+
+		return "$outerClassName.$lastChunk"
+	}
+
+	private static String getLastChunk(String outerClassName) {
+		outerClassName.substring(outerClassName.lastIndexOf('.') + 1)
 	}
 
 	/**

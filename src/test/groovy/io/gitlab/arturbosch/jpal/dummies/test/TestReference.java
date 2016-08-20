@@ -6,4 +6,5 @@ package io.gitlab.arturbosch.jpal.dummies.test;
  * @author Artur Bosch
  */
 public class TestReference {
+
 }

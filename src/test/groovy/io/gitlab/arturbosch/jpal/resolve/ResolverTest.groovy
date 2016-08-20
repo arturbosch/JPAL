@@ -22,15 +22,19 @@ class ResolverTest extends Specification {
 		when: "retrieving qualified type for two types"
 		def helper = Resolver.getQualifiedType(data, new ClassOrInterfaceType("Helper"))
 		def testReference = Resolver.getQualifiedType(data, new ClassOrInterfaceType("TestReference"))
+		def innerClasses = Resolver.getQualifiedType(data,
+				new ClassOrInterfaceType("InnerClassesDummy.InnerClass.InnerInnerClass"))
 		then: "Helper type is retrieved from qualified import and TestReference from asterisk"
 		helper.name == "io.gitlab.arturbosch.jpal.Helper"
 		testReference.name == "io.gitlab.arturbosch.jpal.dummies.test.TestReference"
+		innerClasses.name == "io.gitlab.arturbosch.jpal.dummies.test.InnerClassesDummy.InnerClass.InnerInnerClass"
 	}
 
 	def "domain tests"() {
 		expect: "the right qualified types"
 		Resolver.getQualifiedType(data, importType).isReference()
 		Resolver.getQualifiedType(data, cycleType).isReference()
+		println Resolver.getQualifiedType(data, innerCycleType)
 		Resolver.getQualifiedType(data, innerCycleType).isReference()
 		Resolver.getQualifiedType(data, javaType).isFromJdk()
 		Resolver.getQualifiedType(data, primitiveType).isPrimitive()
@@ -42,7 +46,7 @@ class ResolverTest extends Specification {
 		data = ResolutionData.of(unit)
 		importType = new ClassOrInterfaceType("Helper")
 		cycleType = new ClassOrInterfaceType("CycleDummy")
-		innerCycleType = new ClassOrInterfaceType("InnerCycleOne")
+		innerCycleType = new ClassOrInterfaceType("CycleDummy.InnerCycleOne")
 		javaType = new ClassOrInterfaceType("ArrayList")
 		primitiveType = new PrimitiveType(PrimitiveType.Primitive.Boolean)
 		boxedType = primitiveType.toBoxedType()

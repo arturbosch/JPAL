@@ -9,7 +9,7 @@ import io.gitlab.arturbosch.jpal.dummies.test.*;
  * @author artur
  */
 @SuppressWarnings("ALL")
-class CycleDummy {
+public class CycleDummy {
 
 	public void compute() {
 		Math.abs(100);
@@ -18,13 +18,17 @@ class CycleDummy {
 	private void meah() {
 		TestReference reference = new TestReference();
 		Helper helper = new Helper();
+
+		new InnerClassesDummy();
+		new InnerClassesDummy.InnerClass();
+		new InnerClassesDummy.InnerClass.InnerInnerClass();
 	}
 
-	class InnerCycleOne {
+	public static class InnerCycleOne {
 		InnerCycleTwo cycleTwo = new InnerCycleTwo();
 	}
 
-	class InnerCycleTwo {
+	public static class InnerCycleTwo {
 		InnerCycleOne cycleOne = new InnerCycleOne();
 	}
 }
