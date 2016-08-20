@@ -19,6 +19,8 @@ import java.nio.file.Paths
 @CompileStatic
 class Helper {
 
+	static String QUALIFIED_TYPE_DUMMY = "io.gitlab.arturbosch.jpal.dummies.Dummy"
+
 	static Path BASE_PATH = Paths.get("./src/test/groovy/io/gitlab/arturbosch/jpal/dummies")
 	static Path DUMMY = BASE_PATH.resolve("Dummy.java")
 	static Path EMPTY_DUMMY = BASE_PATH.resolve("EmptyDummy.java")

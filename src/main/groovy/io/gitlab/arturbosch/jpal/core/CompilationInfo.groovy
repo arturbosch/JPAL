@@ -71,6 +71,8 @@ class CompilationInfo {
 	 * @return true if given type is used within this instance
 	 */
 	boolean isWithinScope(QualifiedType type) {
+		Validate.notNull(type)
+		Validate.isTrue(type.name.contains("."), "Is not a qualified type!")
 		return usedTypes.contains(type) || searchForTypeWithinUnit(type)
 	}
 
