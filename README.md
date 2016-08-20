@@ -107,10 +107,9 @@ The resolver checks for following situations:
 
 - Type is a primitive or boxed primitive
 - Type is in the imports and can be easily constructed
+- Type is in within an asterisk import
 - Type is in java.lang
 - Type is within the package
-
-- Star imports are not considered right now (planned for 1.0)
 
 ## <a name="helpers">Helpers - Useful Classes</a>
 
