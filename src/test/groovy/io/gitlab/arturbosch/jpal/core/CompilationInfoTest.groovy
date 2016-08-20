@@ -34,4 +34,15 @@ class CompilationInfoTest extends Specification {
 		!unknownInScope
 		thrown(IllegalArgumentException.class)
 	}
+
+	def "info holds inner classes"() {
+		given: "qualified type of a inner class"
+		def qualifiedType = new QualifiedType(
+				"io.gitlab.arturbosch.jpal.dummies.test.InnerClassesDummy.InnerClass.InnerInnerClass",
+				QualifiedType.TypeToken.REFERENCE)
+		when: "getting the declaring class of this inner class"
+		def info = CompilationStorage.getCompilationInfo(qualifiedType).get()
+		then: "info has all inner classes"
+		info.innerClasses.size() == 2
+	}
 }
