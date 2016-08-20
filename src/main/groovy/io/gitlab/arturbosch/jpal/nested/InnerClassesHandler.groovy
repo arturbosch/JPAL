@@ -25,15 +25,25 @@ class InnerClassesHandler {
 			innerClassesNames = NodeHelper.findNamesOfInnerClasses(mainClass)
 			outerClassName = mainClass.name
 		} else {
-			throw new NoClassesException()
+			throw new NoClassesException("Given compilation unit has no type declarations!")
 		}
 	}
 
-	private boolean isInnerClass(String className) {
+	/**
+	 * Tests if the given class name is a inner cass.
+	 * @param className name as string
+	 * @return true if inner class
+	 */
+	boolean isInnerClass(String className) {
 		Validate.notNull(className)
 		return innerClassesNames.contains(className)
 	}
 
+	/**
+	 * Appends the outer class to the given inner class
+	 * @param type probably a inner class type
+	 * @return unqualified name for inner class
+	 */
 	String getUnqualifiedNameForInnerClass(Type type) {
 		Validate.notNull(type)
 		return isInnerClass(type.toStringWithoutComments()) ? "${outerClassName}.$type" : "$type"

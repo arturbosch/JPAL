@@ -18,4 +18,13 @@ class InnerClassesHandlerTest extends Specification {
 		name == "CycleDummy.InnerCycleOne"
 	}
 
+	def "No classes expection on empty CU"() {
+		when:
+		def unit = Helper.compile(Helper.NO_CONTENT_DUMMY)
+		//noinspection GroovyResultOfObjectAllocationIgnored
+		new InnerClassesHandler(unit)
+		then:
+		thrown(NoClassesException.class)
+	}
+
 }

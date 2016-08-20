@@ -11,7 +11,7 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class NoClassesException extends RuntimeException {
 
-	NoClassesException() {
-		super("Compilation unit is empty!")
+	NoClassesException(String message) {
+		super(message)
 	}
 }

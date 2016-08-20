@@ -9,10 +9,23 @@ import java.util.List;
 /**
  * @author artur
  */
+@SuppressWarnings("ALL")
 public class Dummy {
 
 	List<String> list = new ArrayList<>();
 	QualifiedType qualifiedType = null;
 	ResolutionData resolutionData = new ResolutionData(null, null);
 
+	void hello() {
+		ArrayList<String> strings = new ArrayList<>(list);
+		String s = strings.get(0);
+
+		switch (s) {
+			case "hi": break;
+		}
+	}
+
+	void me(int number, String text) {
+		int i = 5;
+	}
 }
