@@ -3,6 +3,9 @@
 Jpal is a library for javaparser which provides additional features
 like cross referencing, qualified types and other useful classes.
 
+Development on GitLab: https://gitlab.com/arturbosch/JPAL 
+Mirror on GitHub: https://github.com/arturbosch/JPAL
+
 ## Table of contents
 1. [Build](#build)
 2. [Cross Referencing](#cross)
