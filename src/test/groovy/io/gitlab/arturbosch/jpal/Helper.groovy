@@ -23,6 +23,7 @@ class Helper {
 	static Path DUMMY = BASE_PATH.resolve("Dummy.java")
 	static Path EMPTY_DUMMY = BASE_PATH.resolve("EmptyDummy.java")
 	static Path CYCLE_DUMMY = BASE_PATH.resolve("CycleDummy.java")
+	static Path ANONYMOUS_DUMMY = BASE_PATH.resolve("AnonymousDummy.java")
 	static Path NO_CONTENT_DUMMY = BASE_PATH.resolve("NoContent.java")
 	static Path NO_PACKAGE_DUMMY = Paths.get("./src/test/resources/NoPackage.java")
 

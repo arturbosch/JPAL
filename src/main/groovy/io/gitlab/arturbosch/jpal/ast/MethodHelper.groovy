@@ -102,7 +102,7 @@ final class MethodHelper {
 	}
 
 	/**
-	 * Tests if the given method's body is bigger than the given threshold
+	 * Tests if the given method's body measured in statements(!) is bigger than the given threshold
 	 * @param threshold
 	 * @param methodDeclaration
 	 * @return

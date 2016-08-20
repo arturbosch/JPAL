@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * It is not allowed to deleted any of these statements.
+ * Adding members is allowed if not breaking tests!
+ *
  * @author artur
  */
 @SuppressWarnings("ALL")
@@ -21,11 +24,20 @@ public class Dummy {
 		String s = strings.get(0);
 
 		switch (s) {
-			case "hi": break;
+			case "hi":
+				break;
 		}
 	}
 
 	void me(int number, String text) {
-		int i = 5;
+		int i = number;
+	}
+
+	List<String> getList() {
+		return list;
+	}
+
+	void setList(List<String> list) {
+		this.list = list;
 	}
 }
