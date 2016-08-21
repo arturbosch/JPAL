@@ -16,6 +16,32 @@ Mirror on GitHub: https://github.com/arturbosch/JPAL
 
 ## <a name="build">Build</a>
 
+#### Bintray
+
+For Gradle use:
+
+```
+repositories {
+    maven {
+        url  "http://dl.bintray.com/arturbosch/generic" 
+    }
+}
+```
+
+`compile 'io.gitlab.arturbosch.jpal:jpal:1.0.RC1'`
+
+For Maven see `https://bintray.com/arturbosch/generic/JPAL` -> SetUp
+
+```
+<dependency>
+  <groupId>io.gitlab.arturbosch.jpal</groupId>
+  <artifactId>jpal</artifactId>
+  <version>1.0.RC1</version>
+  <type>pom</type>
+</dependency>
+```
+
+#### Raw
 - Make sure gradle is installed
 - Download the jpal git repository
 - Use gradle clean build publishToMavenLocal
