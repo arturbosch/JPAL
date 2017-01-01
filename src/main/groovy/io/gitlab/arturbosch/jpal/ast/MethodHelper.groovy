@@ -45,14 +45,12 @@ final class MethodHelper {
 	 * @return true if getter or setter
 	 */
 	static boolean isGetterOrSetter(MethodDeclaration methodDeclaration) {
-		def body = Validate.notNull(methodDeclaration).body
-		if (body == null) return false
-		def stmts = body.getStmts()
-		if (stmts.size() == 1) {
-			def statement = stmts.get(0)
-			return isGetter(statement) || isSetter(statement)
-		}
-		return false
+		return Validate.notNull(methodDeclaration).body
+				.map { it.statements }
+				.filter { it.size() == 1 }
+				.map { it[0] }
+				.map { isGetter(it) || isSetter(it) }
+				.orElse(Boolean.FALSE)
 	}
 
 	private static boolean isSetter(Statement statement) {
@@ -67,10 +65,10 @@ final class MethodHelper {
 
 	private static boolean isGetter(Statement statement) {
 		if (statement instanceof ReturnStmt) {
-			def expression = ((ReturnStmt) statement).expr
-			if (expression instanceof NameExpr) {
-				return true
-			}
+			return ((ReturnStmt) statement).expression
+					.filter { it instanceof NameExpr }
+					.map { Boolean.TRUE }
+					.orElse(Boolean.FALSE)
 		}
 		return false
 	}
@@ -108,7 +106,7 @@ final class MethodHelper {
 	 * @return
 	 */
 	static boolean sizeBiggerThan(int threshold, MethodDeclaration methodDeclaration) {
-		return Optional.ofNullable(methodDeclaration.body).filter { it.stmts.size() > threshold }.isPresent()
+		return methodDeclaration.body.filter { it.statements.size() > threshold }.isPresent()
 	}
 
 	/**
@@ -118,7 +116,9 @@ final class MethodHelper {
 	 * @return filtered methods
 	 */
 	static List<MethodDeclaration> filterAnonymousMethods(List<MethodDeclaration> methods) {
-		return methods.stream().filter { !isAnonymousMethod(it) }.collect(Collectors.toList())
+		return methods.stream()
+				.filter { !isAnonymousMethod(it) }
+				.collect(Collectors.toList())
 	}
 
 	/**
@@ -128,7 +128,7 @@ final class MethodHelper {
 	 * @return true if parent is an object creation expression
 	 */
 	static boolean isAnonymousMethod(MethodDeclaration methodDeclaration) {
-		return Optional.ofNullable(methodDeclaration.getParentNode())
+		return methodDeclaration.getParentNode()
 				.filter { it instanceof ObjectCreationExpr }
 				.isPresent()
 	}

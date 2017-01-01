@@ -1,6 +1,5 @@
 package io.gitlab.arturbosch.jpal.ast
 
-import com.github.javaparser.ASTHelper
 import com.github.javaparser.ast.body.MethodDeclaration
 import io.gitlab.arturbosch.jpal.Helper
 import spock.lang.Specification
@@ -11,7 +10,7 @@ import spock.lang.Specification
 class MethodHelperTest extends Specification {
 
 	private List<MethodDeclaration> methodsWithinUnit =
-			ASTHelper.getNodesByType(Helper.compile(Helper.DUMMY), MethodDeclaration.class)
+			Helper.compile(Helper.DUMMY).getNodesByType(MethodDeclaration.class)
 
 	def "extract parameters from body declarations"() {
 		given:
@@ -48,7 +47,7 @@ class MethodHelperTest extends Specification {
 
 	def "filter anonymous methods"() {
 		given:
-		def methods = ASTHelper.getNodesByType(Helper.compile(Helper.ANONYMOUS_DUMMY), MethodDeclaration.class)
+		def methods = Helper.compile(Helper.ANONYMOUS_DUMMY).getNodesByType(MethodDeclaration.class)
 		when:
 		def filteredMethods = MethodHelper.filterAnonymousMethods(methods)
 		then:

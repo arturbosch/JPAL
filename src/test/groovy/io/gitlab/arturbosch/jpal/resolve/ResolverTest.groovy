@@ -34,7 +34,6 @@ class ResolverTest extends Specification {
 		expect: "the right qualified types"
 		Resolver.getQualifiedType(data, importType).isReference()
 		Resolver.getQualifiedType(data, cycleType).isReference()
-		println Resolver.getQualifiedType(data, innerCycleType)
 		Resolver.getQualifiedType(data, innerCycleType).isReference()
 		Resolver.getQualifiedType(data, javaType).isFromJdk()
 		Resolver.getQualifiedType(data, primitiveType).isPrimitive()
@@ -48,7 +47,7 @@ class ResolverTest extends Specification {
 		cycleType = new ClassOrInterfaceType("CycleDummy")
 		innerCycleType = new ClassOrInterfaceType("CycleDummy.InnerCycleOne")
 		javaType = new ClassOrInterfaceType("ArrayList")
-		primitiveType = new PrimitiveType(PrimitiveType.Primitive.Boolean)
+		primitiveType = new PrimitiveType(PrimitiveType.Primitive.BOOLEAN)
 		boxedType = primitiveType.toBoxedType()
 		unknownType = new UnknownType()
 	}

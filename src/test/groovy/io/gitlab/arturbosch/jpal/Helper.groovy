@@ -1,6 +1,5 @@
 package io.gitlab.arturbosch.jpal
 
-import com.github.javaparser.ASTHelper
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
@@ -36,14 +35,14 @@ class Helper {
 	}
 
 	static MethodDeclaration nth(CompilationUnit unit, int n) {
-		return ASTHelper.getNodesByType(unit, MethodDeclaration.class).get(n)
+		return unit.getNodesByType(MethodDeclaration.class).get(n)
 	}
 
 	static ClassOrInterfaceDeclaration firstClass(CompilationUnit unit) {
-		return ASTHelper.getNodesByType(unit, ClassOrInterfaceDeclaration.class).first()
+		return unit.getNodesByType(ClassOrInterfaceDeclaration.class).first()
 	}
 
 	static FieldDeclaration nth(ClassOrInterfaceDeclaration clazz, int n) {
-		return ASTHelper.getNodesByType(clazz, FieldDeclaration.class).get(n)
+		return clazz.getNodesByType(FieldDeclaration.class).get(n)
 	}
 }

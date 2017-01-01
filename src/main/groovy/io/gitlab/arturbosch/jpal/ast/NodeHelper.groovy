@@ -1,13 +1,11 @@
 package io.gitlab.arturbosch.jpal.ast
 
-import com.github.javaparser.ASTHelper
 import com.github.javaparser.ast.CompilationUnit
+import com.github.javaparser.ast.Modifier
 import com.github.javaparser.ast.Node
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
-import com.github.javaparser.ast.body.ModifierSet
-import io.gitlab.arturbosch.jpal.internal.Looper
 import io.gitlab.arturbosch.jpal.internal.Validate
 
 import java.util.function.Predicate
@@ -33,7 +31,7 @@ final class NodeHelper {
 	 */
 	static List<MethodDeclaration> findPrivateMethods(Node n) {
 		return findMethods(Validate.notNull(n)).stream()
-				.filter { ModifierSet.isPrivate(it.modifiers) }
+				.filter { it.modifiers.contains(Modifier.PRIVATE) }
 				.collect(Collectors.toList())
 	}
 
@@ -43,7 +41,7 @@ final class NodeHelper {
 	 * @return list of method declarations
 	 */
 	static List<MethodDeclaration> findMethods(Node n) {
-		return ASTHelper.getNodesByType(Validate.notNull(n), MethodDeclaration.class)
+		return Validate.notNull(n).getNodesByType(MethodDeclaration.class)
 	}
 
 	/**
@@ -53,7 +51,7 @@ final class NodeHelper {
 	 */
 	static List<FieldDeclaration> findPrivateFields(Node n) {
 		return findFields(Validate.notNull(n)).stream()
-				.filter { ModifierSet.isPrivate(it.modifiers) }
+				.filter { it.modifiers.contains(Modifier.PRIVATE) }
 				.collect(Collectors.toList())
 	}
 
@@ -63,7 +61,7 @@ final class NodeHelper {
 	 * @return list of field declarations
 	 */
 	static List<FieldDeclaration> findFields(Node n) {
-		return ASTHelper.getNodesByType(Validate.notNull(n), FieldDeclaration.class)
+		return Validate.notNull(n).getNodesByType(FieldDeclaration.class)
 	}
 
 	/**
@@ -72,9 +70,9 @@ final class NodeHelper {
 	 * @return set of strings
 	 */
 	static Set<String> findNamesOfInnerClasses(Node n) {
-		return ASTHelper.getNodesByType(Validate.notNull(n), ClassOrInterfaceDeclaration.class).stream()
-				.filter { it.parentNode instanceof ClassOrInterfaceDeclaration }
-				.map { it.name }
+		return Validate.notNull(n).getNodesByType(ClassOrInterfaceDeclaration.class).stream()
+				.filter { it.parentNode instanceof Optional<ClassOrInterfaceDeclaration> }
+				.map { it.nameAsString }
 				.collect(Collectors.toSet())
 	}
 
@@ -106,12 +104,12 @@ final class NodeHelper {
 	}
 
 	private static Optional findDeclaring(Node node, Predicate<Node> predicate) {
-		Node parent = Validate.notNull(node)
-		Looper.loop {
-			parent = parent.getParentNode()
-		} until { predicate.test(parent) || parent == null }
-
-		return parent == null ? Optional.empty() : Optional.of(parent)
+		Optional<Node> parent = Validate.notNull(node).getParentNode()
+		while (parent.isPresent()) {
+			if (predicate.test(parent.get())) return parent
+			parent = parent.get().getParentNode()
+		}
+		return Optional.empty()
 	}
 
 }

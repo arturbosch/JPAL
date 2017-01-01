@@ -18,8 +18,8 @@ class NodeHelperTest extends Specification {
 		def method = NodeHelper.findDeclaringMethod(firstMethodNode)
 
 		then:
-		clazz.name == "CycleDummy"
-		unit.types[0].name == "CycleDummy"
+		clazz.nameAsString == "CycleDummy"
+		unit.types[0].nameAsString == "CycleDummy"
 		!method.isPresent()
 	}
 
@@ -29,14 +29,14 @@ class NodeHelperTest extends Specification {
 
 		when:
 		def fields = NodeHelper.findFields(clazz)
-		def privFields = NodeHelper.findPrivateFields(clazz)
+		def privateFields = NodeHelper.findPrivateFields(clazz)
 		def methods = NodeHelper.findMethods(clazz)
-		def privMethods = NodeHelper.findPrivateMethods(clazz)
+		def privateMethods = NodeHelper.findPrivateMethods(clazz)
 
 		then:
 		fields.size() == 2
-		privFields.isEmpty()
+		privateFields.isEmpty()
 		methods.size() == 2
-		privMethods.size() == 1
+		privateMethods.size() == 1
 	}
 }

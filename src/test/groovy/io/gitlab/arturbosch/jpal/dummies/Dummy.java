@@ -17,7 +17,7 @@ public class Dummy {
 
 	List<String> list = new ArrayList<>();
 	QualifiedType qualifiedType = null;
-	ResolutionData resolutionData = new ResolutionData(null, null);
+	ResolutionData resolutionData = ResolutionData.of(null);
 
 	void hello() {
 		ArrayList<String> strings = new ArrayList<>(list);

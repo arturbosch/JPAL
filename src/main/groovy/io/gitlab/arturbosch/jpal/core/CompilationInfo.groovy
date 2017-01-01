@@ -1,6 +1,5 @@
 package io.gitlab.arturbosch.jpal.core
 
-import com.github.javaparser.ASTHelper
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.type.ClassOrInterfaceType
 import groovy.transform.CompileStatic
@@ -57,8 +56,7 @@ class CompilationInfo {
 
 	private static List extractUsedTypesFromImports(CompilationUnit unit) {
 		return unit.imports.stream()
-				.filter { !it.isEmptyImportDeclaration() }
-				.map { it.name.toStringWithoutComments() }
+				.map { it.nameAsString }
 				.filter { !it.startsWith("java") }
 				.map { new QualifiedType(it, QualifiedType.TypeToken.REFERENCE) }
 				.collect(Collectors.toList())
@@ -80,7 +78,7 @@ class CompilationInfo {
 		def name = qualifiedType.asOuterClass().name
 		def packageName = name.substring(0, name.lastIndexOf("."))
 
-		def samePackage = Optional.ofNullable(unit.package).map { it.packageName == packageName }
+		def samePackage = unit.packageDeclaration.map { it.nameAsString == packageName }
 
 		if (samePackage.isPresent()) {
 			return searchInternal(qualifiedType, unit)
@@ -99,14 +97,14 @@ class CompilationInfo {
 
 	private static boolean searchInternal(QualifiedType qualifiedType, CompilationUnit unit) {
 		def shortName = qualifiedType.shortName()
-		def types = ASTHelper.getNodesByType(unit, ClassOrInterfaceType.class)
-		return types.any { it.name == shortName }
+		def types = unit.getNodesByType(ClassOrInterfaceType.class)
+		return types.any { it.nameAsString == shortName }
 	}
 
 	@Override
-	public String toString() {
+	String toString() {
 		return "CompilationInfo{" +
 				"qualifiedType=" + qualifiedType +
-				'}';
+				'}'
 	}
 }

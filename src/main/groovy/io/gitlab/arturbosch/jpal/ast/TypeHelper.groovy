@@ -1,12 +1,10 @@
 package io.gitlab.arturbosch.jpal.ast
 
-import com.github.javaparser.ASTHelper
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.PackageDeclaration
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.TypeDeclaration
 import com.github.javaparser.ast.type.ClassOrInterfaceType
-import com.github.javaparser.ast.type.ReferenceType
 import com.github.javaparser.ast.type.Type
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.internal.Validate
@@ -44,12 +42,8 @@ final class TypeHelper {
 	 * @return maybe a class or interface type
 	 */
 	static Optional<ClassOrInterfaceType> getClassOrInterfaceType(Type type) {
-		Type tmp = type
-		while (tmp instanceof ReferenceType) {
-			tmp = (tmp as ReferenceType).getType()
-		}
-		if (tmp instanceof ClassOrInterfaceType) {
-			return Optional.of(tmp as ClassOrInterfaceType)
+		if (type instanceof ClassOrInterfaceType) {
+			return Optional.of(type as ClassOrInterfaceType)
 		}
 		return Optional.empty()
 	}
@@ -78,8 +72,8 @@ final class TypeHelper {
 	 * @return a qualified type - be aware it can be unknown
 	 */
 	static QualifiedType getQualifiedType(ClassOrInterfaceDeclaration n, CompilationUnit unit) {
-		def name = n.name
-		def holder = new ResolutionData(unit.package, unit.imports)
+		def name = n.nameAsString
+		def holder = ResolutionData.of(unit)
 		return Resolver.getQualifiedType(holder, new ClassOrInterfaceType(name))
 	}
 
@@ -92,8 +86,9 @@ final class TypeHelper {
 	 * @return a qualified type consisting of the package name and the type name - be aware it is handled
 	 * as a reference type
 	 */
-	static QualifiedType getQualifiedTypeFromPackage(TypeDeclaration n, PackageDeclaration packageDeclaration) {
-		return new QualifiedType("${packageDeclaration?.packageName ?: DEFAULT_PACKAGE}.$n.name", QualifiedType.TypeToken.REFERENCE)
+	static QualifiedType getQualifiedTypeFromPackage(TypeDeclaration n, Optional<PackageDeclaration> packageDeclaration) {
+		return new QualifiedType("${packageDeclaration.map { it.nameAsString }.orElse(DEFAULT_PACKAGE)}.$n.name",
+				QualifiedType.TypeToken.REFERENCE)
 	}
 
 	/**
@@ -106,8 +101,8 @@ final class TypeHelper {
 	static boolean isTypePresentInCompilationUnit(CompilationUnit unit, QualifiedType qualifiedType) {
 		Validate.notNull(unit)
 		def shortName = Validate.notNull(qualifiedType).shortName()
-		def types = ASTHelper.getNodesByType(unit, ClassOrInterfaceType.class)
-		return types.any { it.name == shortName }
+		def types = unit.getNodesByType(ClassOrInterfaceType.class)
+		return types.any { it.nameAsString == shortName }
 	}
 
 	/**
@@ -120,7 +115,7 @@ final class TypeHelper {
 		List<TypeDeclaration> types = unit.getTypes()
 		if (types.size() >= 1) {
 			TypeDeclaration mainClass = types[0]
-			String packageName = unit?.package?.packageName ?: ""
+			String packageName = unit.packageDeclaration.map { it.nameAsString }.orElse("")
 			Set<String> innerClassesNames = NodeHelper.findNamesOfInnerClasses(mainClass)
 			String outerClassName = mainClass.name
 			return innerClassesNames.stream().map {

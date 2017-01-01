@@ -2,7 +2,6 @@ package io.gitlab.arturbosch.jpal.ast
 
 import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.Parameter
-import com.github.javaparser.ast.expr.NameExpr
 import com.github.javaparser.ast.expr.VariableDeclarationExpr
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.custom.JpalVariable
@@ -22,17 +21,20 @@ class VariableHelper {
 	 * From locale variable to jpal variables as given expression can have many variables.
 	 */
 	static Set<JpalVariable> toJpalFromLocale(VariableDeclarationExpr variables) {
-		return variables.vars.stream().map {
+		return variables.variables.stream().map {
+
+			def begin = it.getBegin()
+			def end = it.getEnd()
 			new JpalVariable(
-					it.range.begin.line,
-					it.range.begin.column,
-					it.range.end.line,
-					it.range.end.column,
+					begin.map { it.line }.orElse(-1),
+					begin.map { it.column }.orElse(-1),
+					end.map { it.line }.orElse(-1),
+					end.map { it.column }.orElse(-1),
 					variables.modifiers,
 					variables.annotations,
-					variables.type,
-					it.id,
-					it.init,
+					it.type,
+					it.nameAsString,
+					it.initializer,
 					JpalVariable.Nature.Local)
 		}.collect(Collectors.toSet())
 	}
@@ -50,17 +52,19 @@ class VariableHelper {
 	 */
 	static Set<JpalVariable> toJpalFromField(FieldDeclaration field) {
 		return field.variables.stream().map {
+			def begin = it.getBegin()
+			def end = it.getEnd()
 			new JpalVariable(
-					it.range.begin.line,
-					it.range.begin.column,
-					it.range.end.line,
-					it.range.end.column,
+					begin.map { it.line }.orElse(-1),
+					begin.map { it.column }.orElse(-1),
+					end.map { it.line }.orElse(-1),
+					end.map { it.column }.orElse(-1),
 					field.modifiers,
 					field.annotations,
-					field.type,
-					it.id,
-					it.init,
-					JpalVariable.Nature.Local)
+					it.type,
+					it.nameAsString,
+					it.initializer,
+					JpalVariable.Nature.Field)
 		}.collect(Collectors.toSet())
 	}
 
@@ -76,16 +80,18 @@ class VariableHelper {
 	 * From parameter to jpal variable.
 	 */
 	static JpalVariable toJpalFromParameter(Parameter parameter) {
-		return new JpalVariable(
-				parameter.range.begin.line,
-				parameter.range.begin.column,
-				parameter.range.end.line,
-				parameter.range.end.column,
+		def begin = parameter.getBegin()
+		def end = parameter.getEnd()
+		new JpalVariable(
+				begin.map { it.line }.orElse(-1),
+				begin.map { it.column }.orElse(-1),
+				end.map { it.line }.orElse(-1),
+				end.map { it.column }.orElse(-1),
 				parameter.modifiers,
 				parameter.annotations,
 				parameter.type,
-				parameter.id,
-				new NameExpr(parameter.id.name),
+				parameter.nameAsString,
+				Optional.empty(),
 				JpalVariable.Nature.Parameter)
 	}
 

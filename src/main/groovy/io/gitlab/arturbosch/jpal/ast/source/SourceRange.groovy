@@ -1,5 +1,6 @@
 package io.gitlab.arturbosch.jpal.ast.source
 
+import com.github.javaparser.Position
 import com.github.javaparser.ast.Node
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
@@ -25,7 +26,8 @@ class SourceRange {
 	}
 
 	static SourceRange fromNode(Node node) {
-		def range = node.getRange()
-		return of(range.begin.line, range.end.line, range.begin.column, range.end.column)
+		def begin = node.getBegin().orElse(Position.HOME)
+		def end = node.getEnd().orElse(Position.HOME)
+		return of(begin.line, end.line, begin.column, end.column)
 	}
 }

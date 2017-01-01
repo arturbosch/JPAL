@@ -3,6 +3,7 @@ package io.gitlab.arturbosch.jpal.ast
 import com.github.javaparser.ast.Node
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
+import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.internal.Validate
 
 /**
@@ -10,6 +11,7 @@ import io.gitlab.arturbosch.jpal.internal.Validate
  *
  * @author artur
  */
+@CompileStatic
 final class ClassHelper {
 
 	private ClassHelper() {}
@@ -26,7 +28,7 @@ final class ClassHelper {
 		Validate.notNull(node)
 		Validate.notEmpty(className)
 		return NodeHelper.findDeclaringClass(node)
-				.filter { it.name == className }
+				.filter { it.nameAsString == className }
 				.isPresent()
 	}
 
@@ -71,8 +73,8 @@ final class ClassHelper {
 	static String createSignature(ClassOrInterfaceDeclaration n) {
 		Validate.notNull(n)
 		def types = n.typeParameters.join(",")
-		def extend = n.extends.join(",")
-		def implement = n.implements.join(",")
+		def extend = n.extendedTypes.join(",")
+		def implement = n.implementedTypes.join(",")
 		return "$n.name${if (types) "<$types>" else ""}${if (extend) " extends $extend" else ""}${if (implement) " implements $implement" else ""}"
 	}
 
@@ -82,16 +84,15 @@ final class ClassHelper {
 	 * Purpose of the method is to use the returned unqualified name as a parameter
 	 * to build the qualified type of given class.
 	 *
-	 * @param n given class
+	 * @param node given class
 	 * @return unqualified type with root class as string
 	 */
-	static String appendOuterClassIfInnerClass(ClassOrInterfaceDeclaration n) {
-		def unqualifiedName = n.name
-		if (n.parentNode instanceof ClassOrInterfaceDeclaration) {
-			def parentName = (n.parentNode as ClassOrInterfaceDeclaration).name
-			unqualifiedName = "$parentName.$n.name"
-		}
-		return unqualifiedName
+	static String appendOuterClassIfInnerClass(ClassOrInterfaceDeclaration node) {
+		return node.parentNode
+				.filter { it instanceof ClassOrInterfaceDeclaration }
+				.map { (it as ClassOrInterfaceDeclaration).nameAsString }
+				.map { parentName -> "$parentName.$node.nameAsString" }
+				.orElse("$node.nameAsString")
 	}
 
 }

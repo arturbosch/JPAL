@@ -4,6 +4,7 @@ import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.type.Type
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.NodeHelper
+import io.gitlab.arturbosch.jpal.internal.Printer
 import io.gitlab.arturbosch.jpal.internal.Validate
 
 /**
@@ -46,7 +47,7 @@ class InnerClassesHandler {
 	 */
 	String getUnqualifiedNameForInnerClass(Type type) {
 		Validate.notNull(type)
-		return isInnerClass(type.toStringWithoutComments()) ? "${outerClassName}.$type" : "$type"
+		return isInnerClass(type.toString(Printer.NO_COMMENTS)) ? "${outerClassName}.$type" : "$type"
 	}
 
 }

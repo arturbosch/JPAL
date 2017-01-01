@@ -1,6 +1,7 @@
 package io.gitlab.arturbosch.jpal.ast.custom
 
-import com.github.javaparser.ast.body.VariableDeclaratorId
+import com.github.javaparser.ast.Modifier
+import com.github.javaparser.ast.NodeList
 import com.github.javaparser.ast.expr.AnnotationExpr
 import com.github.javaparser.ast.expr.Expression
 import com.github.javaparser.ast.type.Type
@@ -30,25 +31,26 @@ class JpalVariable {
 		Local, Field, Parameter
 	}
 
-	final int modifiers;
-	final List<AnnotationExpr> annotations;
-	final Type type;
-	final String name;
-	final int arrayCount;
-	final Expression expression;
+	final EnumSet<Modifier> modifiers
+	final NodeList<AnnotationExpr> annotations
+	final Type type
+	final String name
+	final int arrayCount
+	final Optional<Expression> initExpression
 	final SourceRange sourceRange
 	final Nature nature
 
 	JpalVariable(final int beginLine, final int beginColumn, final int endLine, final int endColumn,
-				 final int modifiers, final List<AnnotationExpr> annotations, final Type type,
-				 final VariableDeclaratorId id, final Expression expression, final Nature nature) {
+				 final EnumSet<Modifier> modifiers, final NodeList<AnnotationExpr> annotations,
+				 final Type type, final String name, final Optional<Expression> initExpression,
+				 final Nature nature) {
 		this.sourceRange = SourceRange.of(beginLine, endLine, beginColumn, endColumn)
 		this.modifiers = modifiers
 		this.annotations = annotations
 		this.type = type
-		this.name = id.name
-		this.arrayCount = id.arrayCount
-		this.expression = expression
+		this.name = name
+		this.arrayCount = type.arrayLevel
+		this.initExpression = initExpression
 		this.nature = nature
 	}
 

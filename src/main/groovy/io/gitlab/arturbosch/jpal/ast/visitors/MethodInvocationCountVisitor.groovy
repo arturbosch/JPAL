@@ -3,6 +3,7 @@ package io.gitlab.arturbosch.jpal.ast.visitors
 import com.github.javaparser.ast.expr.MethodCallExpr
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
 import groovy.transform.CompileStatic
+import io.gitlab.arturbosch.jpal.internal.Printer
 
 /**
  * Visits method call expressions and count them if they match the searched name or
@@ -37,7 +38,7 @@ class MethodInvocationCountVisitor extends VoidVisitorAdapter {
 			count++
 		} else {
 			Optional.ofNullable(n.scope)
-					.map { it.toStringWithoutComments() }
+					.map { it.toString(Printer.NO_COMMENTS) }
 					.filter { (it == searchedName) }
 					.ifPresent { count++ }
 		}

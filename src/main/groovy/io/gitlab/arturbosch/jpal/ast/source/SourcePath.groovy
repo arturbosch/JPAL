@@ -23,7 +23,7 @@ class SourcePath {
 	}
 
 	@Override
-	public String toString() {
+	String toString() {
 		return path
 	}
 }

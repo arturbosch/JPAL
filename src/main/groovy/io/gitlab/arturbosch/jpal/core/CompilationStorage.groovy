@@ -1,6 +1,5 @@
 package io.gitlab.arturbosch.jpal.core
 
-import com.github.javaparser.ASTHelper
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ParseException
 import com.github.javaparser.TokenMgrException
@@ -52,11 +51,11 @@ import java.util.stream.Stream
 @CompileStatic
 final class CompilationStorage {
 
-	private static CompilationStorage storage;
+	private static CompilationStorage storage
 
 	private static CompilationStorage getInstance() {
 		Validate.notNull(storage, "Compilation storage not yet initialized!")
-		return storage;
+		return storage
 	}
 
 	private final static Logger LOGGER = Logger.getLogger(CompilationStorage.simpleName)
@@ -94,7 +93,7 @@ final class CompilationStorage {
 				def unit = JavaParser.parse(it)
 				if (unit.types.isEmpty()) return
 				def clazz = getFirstDeclaredClass(unit)
-				def type = TypeHelper.getQualifiedTypeFromPackage(clazz, unit.package)
+				def type = TypeHelper.getQualifiedTypeFromPackage(clazz, unit.packageDeclaration)
 				def compilationInfo = CompilationInfo.of(type, unit, path)
 				typeCache.put(type, compilationInfo)
 				pathCache.put(path, compilationInfo)
@@ -104,7 +103,7 @@ final class CompilationStorage {
 	}
 
 	private static TypeDeclaration getFirstDeclaredClass(CompilationUnit compilationUnit) {
-		return ASTHelper.getNodesByType(compilationUnit, TypeDeclaration.class).first()
+		return compilationUnit.getNodesByType(TypeDeclaration.class).first()
 	}
 
 	private static void logCompilationFailure(Path path, Throwable error) {

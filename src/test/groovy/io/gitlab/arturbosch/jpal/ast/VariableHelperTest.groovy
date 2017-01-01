@@ -1,6 +1,5 @@
 package io.gitlab.arturbosch.jpal.ast
 
-import com.github.javaparser.ASTHelper
 import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.Parameter
 import com.github.javaparser.ast.expr.VariableDeclarationExpr
@@ -16,9 +15,9 @@ class VariableHelperTest extends Specification {
 
 	def "fields to jpal variables"() {
 		given:
-		def fields = ASTHelper.getNodesByType(unit, FieldDeclaration.class)
-		def params = ASTHelper.getNodesByType(unit, Parameter.class)
-		def locales = ASTHelper.getNodesByType(unit, VariableDeclarationExpr.class)
+		def fields = unit.getNodesByType(FieldDeclaration.class)
+		def params = unit.getNodesByType(Parameter.class)
+		def locales = unit.getNodesByType(VariableDeclarationExpr.class)
 		when:
 		def jpalVars = VariableHelper.toJpalFromFields(fields)
 		def jpalVars2 = VariableHelper.toJpalFromParameters(params)

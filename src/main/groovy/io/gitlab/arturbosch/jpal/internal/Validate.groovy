@@ -6,35 +6,35 @@ import groovy.transform.CompileStatic
  * @author artur
  */
 @CompileStatic
-public final class Validate {
+final class Validate {
 
 	private Validate() {
 	}
 
-	public static void isTrue(final boolean expression, final String message) {
+	static void isTrue(final boolean expression, final String message) {
 		if (!expression) {
-			throw new IllegalArgumentException(message);
+			throw new IllegalArgumentException(message)
 		}
 	}
 
-	public static notEmpty(String object) {
+	static notEmpty(String object) {
 		if (object == null || object.isEmpty()) {
-			throw new IllegalArgumentException("Provided argument is null!");
+			throw new IllegalArgumentException("Provided argument is null!")
 		}
-		return object;
+		return object
 	}
 
-	public static <T> T notNull(T object) {
+	static <T> T notNull(T object) {
 		if (object == null) {
-			throw new IllegalArgumentException("Provided argument is null!");
+			throw new IllegalArgumentException("Provided argument is null!")
 		}
-		return object;
+		return object
 	}
 
-	public static <T> T notNull(T object, String message) {
+	static <T> T notNull(T object, String message) {
 		if (object == null) {
-			throw new IllegalArgumentException(message);
+			throw new IllegalArgumentException(message)
 		}
-		return object;
+		return object
 	}
 }
