@@ -34,32 +34,45 @@ import java.util.stream.Stream
 @CompileStatic
 final class CompilationTree {
 
-	private static Path root
+	private static CompilationTree tree
 
-	private static SmartCache<QualifiedType, Path> qualifiedNameToPathCache = new SmartCache<>()
-	private static SmartCache<Path, CompilationUnit> pathToCompilationUnitCache = new SmartCache<>()
+	private Path root
+
+	private SmartCache<QualifiedType, Path> qualifiedNameToPathCache = new SmartCache<>()
+	private SmartCache<Path, CompilationUnit> pathToCompilationUnitCache = new SmartCache<>()
+
+	private CompilationTree(Path root) {
+		this.root = root
+	}
+
+	private static CompilationTree getInstance() {
+		Validate.notNull(tree, "Compilation tree not yet initialized!")
+		return tree
+	}
 
 	/**
 	 * Registers the root. Needs to be called before any action on compilation tree should be used.
 	 * @param path project root path
 	 */
 	static void registerRoot(Path path) {
-		root = Validate.notNull(path)
+		tree = new CompilationTree(Validate.notNull(path))
 	}
 
 	/**
 	 * @return tests if the compilation tree was initialized
 	 */
 	static boolean isInitialized() {
-		return root != null
+		return instance.root != null
 	}
 
 	/**
 	 * Resets the caches compilation units. Mainly used for tests.
 	 */
 	static void reset() {
-		qualifiedNameToPathCache.reset()
-		pathToCompilationUnitCache.reset()
+		if (tree != null) {
+			instance.qualifiedNameToPathCache.reset()
+			instance.pathToCompilationUnitCache.reset()
+		}
 	}
 
 	/**
@@ -71,7 +84,7 @@ final class CompilationTree {
 	 * @return maybe the compilation unit if no compile errors occur
 	 */
 	static Optional<CompilationUnit> findCompilationUnit(Path path) {
-		def maybeUnit = pathToCompilationUnitCache.get(path)
+		def maybeUnit = tree.pathToCompilationUnitCache.get(path)
 		return maybeUnit.isPresent() ? maybeUnit : compileFor(path)
 	}
 
@@ -98,7 +111,7 @@ final class CompilationTree {
 	 */
 	static Optional<Path> findPathFor(QualifiedType qualifiedType) {
 		def qualifiedRootType = qualifiedType.asOuterClass()
-		def maybePath = qualifiedNameToPathCache.get(qualifiedRootType)
+		def maybePath = instance.qualifiedNameToPathCache.get(qualifiedRootType)
 
 		if (maybePath.isPresent()) {
 			return maybePath
@@ -112,15 +125,15 @@ final class CompilationTree {
 					.map { it.toAbsolutePath().normalize() }
 			StreamCloser.quietly(walker)
 
-			pathToQualifier.ifPresent { qualifiedNameToPathCache.put(qualifiedRootType, it) }
+			pathToQualifier.ifPresent { instance.qualifiedNameToPathCache.put(qualifiedRootType, it) }
 
 			return pathToQualifier
 		}
 	}
 
 	private static Stream<Path> getJavaFilteredFileStream() {
-		Validate.notNull(root, "Compilation tree must be initialized first!")
-		return Files.walk(root).filter { it.toString().endsWith(".java") }
+		Validate.notNull(instance.root, "Compilation tree must be initialized first!")
+		return Files.walk(instance.root).filter { it.toString().endsWith(".java") }
 				.filter { it.toString() != "package-info.java" } as Stream<Path>
 	}
 
@@ -128,7 +141,7 @@ final class CompilationTree {
 		return IOGroovyMethods.withCloseable(Files.newInputStream(path)) {
 			try {
 				CompilationUnit compilationUnit = JavaParser.parse(it)
-				pathToCompilationUnitCache.put(path, compilationUnit)
+				instance.pathToCompilationUnitCache.put(path, compilationUnit)
 				Optional.of(compilationUnit)
 			} catch (ParseException | TokenMgrException ignored) {
 				Optional.empty()

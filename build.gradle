@@ -1,19 +1,19 @@
 group 'io.gitlab.arturbosch.jpal'
-version '1.0.RC1'
+version '1.0.RC2'
 
 apply plugin: 'java'
 apply plugin: 'groovy'
-apply plugin: 'maven-publish'
+apply plugin: 'maven'
 
 repositories {
 	mavenCentral()
 	mavenLocal()
 }
 
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			from components.java
+uploadArchives {
+	repositories {
+		mavenDeployer {
+			repository(url: uri('../repo'))
 		}
 	}
 }
