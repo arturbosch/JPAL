@@ -64,7 +64,10 @@ final class CompilationStorage {
 	private final SmartCache<QualifiedType, CompilationInfo> typeCache = new SmartCache<>()
 	private final SmartCache<Path, CompilationInfo> pathCache = new SmartCache<>()
 
-	private CompilationStorage(Path path) { root = path }
+	private CompilationStorage(Path path) {
+		Validate.isTrue(Files.isDirectory(path), "Root path must be a directory!")
+		root = path
+	}
 
 	private void createInternal() {
 
