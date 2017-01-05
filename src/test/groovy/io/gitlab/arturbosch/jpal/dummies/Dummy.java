@@ -18,6 +18,7 @@ public class Dummy {
 	List<String> list = new ArrayList<>();
 	QualifiedType qualifiedType = null;
 	ResolutionData resolutionData = ResolutionData.of(null);
+	CycleDummy.InnerCycleOne one = new CycleDummy.InnerCycleOne();
 
 	void hello() {
 		ArrayList<String> strings = new ArrayList<>(list);

@@ -23,15 +23,18 @@ class CompilationInfoTest extends Specification {
 		def listInScope = info.isWithinScope(
 				new QualifiedType("java.util.List", QualifiedType.TypeToken.JAVA_REFERENCE))
 		def stringInScope = info.isWithinScope(
-				new QualifiedType("java.util.String", QualifiedType.TypeToken.JAVA_REFERENCE))
+				new QualifiedType("java.lang.String", QualifiedType.TypeToken.JAVA_REFERENCE))
 		def unknownInScope = info.isWithinScope(
 				new QualifiedType("java.util.Unknown", QualifiedType.TypeToken.UNKNOWN))
-		info.isWithinScope(
-				new QualifiedType("Unknown", QualifiedType.TypeToken.UNKNOWN))
 		then: "only the used types within Dummy are found"
 		listInScope
 		stringInScope
 		!unknownInScope
+
+		when:
+		info.isWithinScope(
+				new QualifiedType("Unknown", QualifiedType.TypeToken.UNKNOWN))
+		then:
 		thrown(IllegalArgumentException.class)
 	}
 

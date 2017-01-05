@@ -82,7 +82,9 @@ final class Resolver {
 		if (imports.keySet().contains(importName)) {
 			def qualifiedName = imports.get(importName)
 			def qualifiedNameWithInnerClass = qualifiedName.substring(0, qualifiedName.lastIndexOf('.') + 1) + name
-			return Optional.of(new QualifiedType(qualifiedNameWithInnerClass, QualifiedType.TypeToken.REFERENCE))
+			def typeToken = qualifiedName.startsWith("java") ?
+					QualifiedType.TypeToken.JAVA_REFERENCE : QualifiedType.TypeToken.REFERENCE
+			return Optional.of(new QualifiedType(qualifiedNameWithInnerClass, typeToken))
 		} else if (CompilationStorage.isInitialized()) {
 			return data.importsWithAsterisk.stream()
 					.map { new QualifiedType("$it.$name", QualifiedType.TypeToken.REFERENCE) }

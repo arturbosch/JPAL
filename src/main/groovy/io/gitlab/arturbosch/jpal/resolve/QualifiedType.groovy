@@ -11,12 +11,14 @@ import io.gitlab.arturbosch.jpal.internal.Validate
  *
  * @author artur
  */
-@ToString(includeNames = false, includePackage = false)
-@EqualsAndHashCode
+@ToString(includeNames = false, includePackage = false, excludes = ["shortName", "onlyPackageName"])
+@EqualsAndHashCode(excludes = ["shortName", "onlyPackageName"])
 @CompileStatic
 class QualifiedType {
 
 	final String name
+	final String shortName
+	final String onlyPackageName
 	final TypeToken typeToken
 
 	/**
@@ -31,6 +33,19 @@ class QualifiedType {
 	QualifiedType(String name, TypeToken typeToken) {
 		this.name = Validate.notNull(name)
 		this.typeToken = Validate.notNull(typeToken)
+		this.shortName = extractShortName(name)
+		this.onlyPackageName = extractPackageName(name)
+	}
+
+	private static String extractShortName(String name) {
+		def index = name.lastIndexOf(".")
+		if (index == -1)
+			return name
+		return name.substring(index + 1)
+	}
+
+	private static String extractPackageName(String name) {
+		return name.split("\\.").grep().takeWhile { Character.isLowerCase(it.charAt(0)) }.join(".")
 	}
 
 	/**
@@ -58,10 +73,7 @@ class QualifiedType {
 	 * @return the class name without package structure
 	 */
 	String shortName() {
-		def index = name.lastIndexOf(".")
-		if (index == -1)
-			return name
-		return name.substring(index + 1)
+		return shortName
 	}
 
 	/**

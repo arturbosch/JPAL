@@ -126,4 +126,29 @@ final class TypeHelper {
 		}
 	}
 
+	/**
+	 * Finds all used types which are used within this compilation unit.
+	 * @param unit the compilation unit
+	 * @return a set of qualified types
+	 */
+	static List<QualifiedType> findAllUsedTypes(CompilationUnit unit) {
+		def resolutionData = ResolutionData.of(unit)
+		return unit.getNodesByType(ClassOrInterfaceType.class)
+				.unique { a, b -> a.nameAsString != b.nameAsString ? 1 : 0 }
+				.stream()
+				.map { withOuterClasses(it) }
+				.map { Resolver.getQualifiedType(resolutionData, it) }
+				.collect(Collectors.toList())
+	}
+
+	private static ClassOrInterfaceType withOuterClasses(ClassOrInterfaceType type) {
+		String fullType = type.nameAsString
+		def current = type.scope
+		while (current.isPresent()) {
+			def presentType = current.get()
+			fullType = "${presentType.nameAsString}.$fullType"
+			current = presentType.scope
+		}
+		return new ClassOrInterfaceType(fullType)
+	}
 }

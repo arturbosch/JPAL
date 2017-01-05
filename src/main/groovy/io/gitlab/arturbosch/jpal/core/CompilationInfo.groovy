@@ -1,14 +1,12 @@
 package io.gitlab.arturbosch.jpal.core
 
 import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.type.ClassOrInterfaceType
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.Validate
 import io.gitlab.arturbosch.jpal.resolve.QualifiedType
 
 import java.nio.file.Path
-import java.util.stream.Collectors
 
 /**
  * Compact information about a compilation unit. Storing the qualified type of
@@ -49,17 +47,33 @@ class CompilationInfo {
 		Validate.notNull(qualifiedType)
 		Validate.notNull(unit)
 		Validate.notNull(path)
-		List<QualifiedType> types = extractUsedTypesFromImports(unit)
+		def types = TypeHelper.findAllUsedTypes(unit)
 		def innerClasses = TypeHelper.getQualifiedTypesOfInnerClasses(unit)
+		types = replaceQualifiedTypesOfInnerClasses(types, innerClasses)
 		return new CompilationInfo(qualifiedType, unit, path, types, innerClasses)
 	}
 
-	private static List extractUsedTypesFromImports(CompilationUnit unit) {
-		return unit.imports.stream()
-				.map { it.nameAsString }
-				.filter { !it.startsWith("java") }
-				.map { new QualifiedType(it, QualifiedType.TypeToken.REFERENCE) }
-				.collect(Collectors.toList())
+	private static List<QualifiedType> replaceQualifiedTypesOfInnerClasses(List<QualifiedType> types,
+																		   Set<QualifiedType> innerClasses) {
+		types.collect { QualifiedType type ->
+			def find = innerClasses.find { sameNameAndPackage(it, type) }
+			if (find) find else type
+		}
+	}
+
+	private static boolean sameNameAndPackage(QualifiedType first, QualifiedType second) {
+		first.shortName == second.shortName && first.onlyPackageName == second.onlyPackageName
+	}
+
+	/**
+	 * Same as above with the difference that CompilationInfoProcessor's can be invoked
+	 * on the created CompilationInfo.
+	 */
+	static CompilationInfo of(QualifiedType qualifiedType, CompilationUnit unit, Path path,
+							  List<CompilationInfoProcessor> processors) {
+		def info = of(qualifiedType, unit, path)
+		processors.each { it.process(info) }
+		return info
 	}
 
 	/**
@@ -71,34 +85,7 @@ class CompilationInfo {
 	boolean isWithinScope(QualifiedType type) {
 		Validate.notNull(type)
 		Validate.isTrue(type.name.contains("."), "Is not a qualified type!")
-		return usedTypes.contains(type) || searchForTypeWithinUnit(type)
-	}
-
-	private boolean searchForTypeWithinUnit(QualifiedType qualifiedType) {
-		def name = qualifiedType.asOuterClass().name
-		def packageName = name.substring(0, name.lastIndexOf("."))
-
-		def samePackage = unit.packageDeclaration.map { it.nameAsString == packageName }
-
-		if (samePackage.isPresent()) {
-			return searchInternal(qualifiedType, unit)
-		} else {
-			def sameImport = usedTypes.stream()
-					.filter { it.name.contains('*') }
-					.map { it.name.substring(0, it.name.lastIndexOf('.')) }
-					.filter { it == packageName }
-					.findFirst()
-			if (sameImport.isPresent()) {
-				return searchInternal(qualifiedType, unit)
-			}
-		}
-		return false
-	}
-
-	private static boolean searchInternal(QualifiedType qualifiedType, CompilationUnit unit) {
-		def shortName = qualifiedType.shortName()
-		def types = unit.getNodesByType(ClassOrInterfaceType.class)
-		return types.any { it.nameAsString == shortName }
+		return usedTypes.contains(type)
 	}
 
 	@Override
