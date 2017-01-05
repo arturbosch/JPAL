@@ -66,7 +66,6 @@ final class CompilationStorage {
 	private final SmartCache<Path, CompilationInfo> pathCache = new SmartCache<>()
 
 	private CompilationStorage(Path path) {
-		Validate.isTrue(Files.isDirectory(path), "Root path must be a directory!")
 		root = path
 	}
 
