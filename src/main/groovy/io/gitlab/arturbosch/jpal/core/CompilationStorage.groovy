@@ -62,11 +62,13 @@ final class CompilationStorage {
 	private final static Logger LOGGER = Logger.getLogger(CompilationStorage.simpleName)
 
 	private final Path root
+	private final CompilationInfoProcessor processor // nullable
 	private final SmartCache<QualifiedType, CompilationInfo> typeCache = new SmartCache<>()
 	private final SmartCache<Path, CompilationInfo> pathCache = new SmartCache<>()
 
-	private CompilationStorage(Path path) {
-		root = path
+	private CompilationStorage(Path path, CompilationInfoProcessor processor) {
+		this.root = path
+		this.processor = processor
 	}
 
 	private void createInternal() {
@@ -97,7 +99,9 @@ final class CompilationStorage {
 				if (unit.types.isEmpty()) return
 				def clazz = getFirstDeclaredClass(unit)
 				def type = TypeHelper.getQualifiedTypeFromPackage(clazz, unit.packageDeclaration)
-				def compilationInfo = CompilationInfo.of(type, unit, path)
+				def compilationInfo = processor ?
+						CompilationInfo.of(type, unit, path, processor) :
+						CompilationInfo.of(type, unit, path)
 				typeCache.put(type, compilationInfo)
 				pathCache.put(path, compilationInfo)
 			} catch (ParseException | TokenMgrException ignored) {
@@ -127,8 +131,25 @@ final class CompilationStorage {
 	 * @return the only reference to this compilation unit
 	 */
 	static CompilationStorage create(Path root) {
+		return privateCreate(root, null)
+	}
+
+	/**
+	 * Initialize the compilation unit and compiles all sub paths of
+	 * given root path. All created compilation info instances will
+	 * execute the given processor.
+	 *
+	 * @param root project path
+	 * @param processor compilation info processor, can be null
+	 * @return the only reference to this compilation unit
+	 */
+	static <T> CompilationStorage createWithProcessor(Path root, CompilationInfoProcessor<T> processor) {
+		return privateCreate(root, processor)
+	}
+
+	private static CompilationStorage privateCreate(Path root, CompilationInfoProcessor processor) {
 		Validate.isTrue(root != null, "Project path must not be null!")
-		storage = new CompilationStorage(root)
+		storage = new CompilationStorage(root, processor)
 		storage.createInternal()
 		return storage
 	}

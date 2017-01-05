@@ -61,6 +61,25 @@ class CompilationStorageTest extends Specification {
 		then: "old path is absent and new present"
 		relocatedCU.qualifiedType.shortName == "InnerClassesDummy"
 		!removedCU.isPresent()
-
 	}
+
+	def "compilation storage with processor test"() {
+		given: "compilation storage with processor"
+		CompilationStorage.createWithProcessor(Helper.BASE_PATH, new CompilationInfoProcessor<String>(){
+			@Override
+			String process(CompilationInfo info) {
+				return "nice"
+			}
+		})
+		assert CompilationStorage.isInitialized()
+
+		when: "retrieving all compilation info"
+		def instances = CompilationStorage.allCompilationInfo
+
+		then: "every instance should have the string 'nice'"
+		instances.each {
+			assert it.getProcessedObject(String.class) == "nice"
+		}
+	}
+
 }
