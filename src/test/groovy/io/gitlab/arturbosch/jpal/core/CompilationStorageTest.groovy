@@ -48,9 +48,19 @@ class CompilationStorageTest extends Specification {
 
 		when: "adding a new path to the compilation storage"
 		def pathToAdd = Helper.BASE_PATH.resolve("test/TestReference.java")
-		def updatedCU = CompilationStorage.updateCompilationInfo([pathToAdd])[0]
+		def updatedCU = CompilationStorage.updateCompilationInfoWithSamePaths([pathToAdd])[0]
 
 		then: "a new compilation info is added"
 		updatedCU.qualifiedType.shortName == "TestReference"
+
+		when: "a file is relocated"
+		def pathToRelocate = Helper.BASE_PATH.resolve("test/InnerClassesDummy.java")
+		def relocatedCU = CompilationStorage.updateRelocatedCompilationInfo(pathToAdd, pathToRelocate).get()
+		def removedCU = CompilationStorage.getCompilationInfo(pathToAdd)
+
+		then: "old path is absent and new present"
+		relocatedCU.qualifiedType.shortName == "InnerClassesDummy"
+		!removedCU.isPresent()
+
 	}
 }

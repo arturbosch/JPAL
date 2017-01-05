@@ -32,6 +32,10 @@ final class SmartCache<K, V> {
 		cache.put(key, value)
 	}
 
+	V remove(K key) {
+		cache.remove(key)
+	}
+
 	/**
 	 * Internal representation of this cache.
 	 *

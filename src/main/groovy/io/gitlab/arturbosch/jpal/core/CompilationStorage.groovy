@@ -134,7 +134,16 @@ final class CompilationStorage {
 		return storage
 	}
 
-	static List<CompilationInfo> updateCompilationInfo(List<Path> paths) {
+	static Optional<CompilationInfo> updateRelocatedCompilationInfo(Path oldPath, Path newPath) {
+		getCompilationInfo(oldPath).ifPresent {
+			instance.pathCache.remove(oldPath)
+			instance.typeCache.remove(it.qualifiedType)
+		}
+		instance.compileFor(newPath)
+		return getCompilationInfo(newPath)
+	}
+
+	static List<CompilationInfo> updateCompilationInfoWithSamePaths(List<Path> paths) {
 		List<CompilationInfo> cus = paths.stream().map {
 			instance.compileFor(it)
 			getCompilationInfo(it)
