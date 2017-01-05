@@ -84,8 +84,7 @@ class CompilationInfo {
 		this.processedObject = processor.process(this)
 	}
 
-	@PackageScope
-	<T> T getProcessedObject(Class<T> clazz) {
+	def <T> T getProcessedObject(Class<T> clazz) {
 		if (processedObject.getClass() == clazz) {
 			return processedObject as T
 		}
