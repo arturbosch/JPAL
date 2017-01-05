@@ -101,6 +101,7 @@ final class CompilationStorage {
 				typeCache.put(type, compilationInfo)
 				pathCache.put(path, compilationInfo)
 			} catch (ParseException | TokenMgrException ignored) {
+				logCompilationFailure(path, ignored)
 			}
 		}
 	}
@@ -130,6 +131,10 @@ final class CompilationStorage {
 		storage = new CompilationStorage(root)
 		storage.createInternal()
 		return storage
+	}
+
+	static void updateCompilationInfo(List<Path> paths) {
+		paths.each { instance.compileFor(it) }
 	}
 
 	/**

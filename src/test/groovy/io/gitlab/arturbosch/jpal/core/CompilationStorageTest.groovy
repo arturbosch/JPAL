@@ -45,5 +45,13 @@ class CompilationStorageTest extends Specification {
 
 		then: "it must be greater or equals the amount of classes in dummies package (now 3)"
 		types.size() >= 3
+
+		when: "adding a new path to the compilation storage"
+		def pathToAdd = Helper.BASE_PATH.resolve("test/TestReference.java")
+		CompilationStorage.updateCompilationInfo([pathToAdd])
+		def testReference = CompilationStorage.getCompilationInfo(pathToAdd).get()
+
+		then: "a new compilation info is added"
+		testReference.qualifiedType
 	}
 }
