@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ForkJoinPool
 import java.util.logging.Level
 import java.util.logging.Logger
+import java.util.stream.Collectors
 import java.util.stream.Stream
 
 /**
@@ -133,22 +134,28 @@ final class CompilationStorage {
 		return storage
 	}
 
-	static void updateCompilationInfo(List<Path> paths) {
-		paths.each { instance.compileFor(it) }
+	static List<CompilationInfo> updateCompilationInfo(List<Path> paths) {
+		List<CompilationInfo> cus = paths.stream().map {
+			instance.compileFor(it)
+			getCompilationInfo(it)
+		}.filter { it.isPresent() }
+				.map { it.get() }
+				.collect(Collectors.toList())
+		return Collections.unmodifiableList(cus)
 	}
 
 	/**
 	 * @return retrieves all stored qualified type keys
 	 */
 	static Set<QualifiedType> getAllQualifiedTypes() {
-		return instance.typeCache.internalCache.keySet()
+		return Collections.unmodifiableSet(instance.typeCache.internalCache.keySet())
 	}
 
 	/**
 	 * @return retrieves all stores compilation info's
 	 */
 	static List<CompilationInfo> getAllCompilationInfo() {
-		return instance.typeCache.internalCache.values().toList()
+		return Collections.unmodifiableList(instance.typeCache.internalCache.values().toList())
 	}
 
 	/**
