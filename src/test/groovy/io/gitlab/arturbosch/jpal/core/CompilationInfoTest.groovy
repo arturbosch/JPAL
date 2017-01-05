@@ -14,6 +14,23 @@ class CompilationInfoTest extends Specification {
 		assert CompilationStorage.isInitialized()
 	}
 
+	def "can set and retrieve processor"() {
+		given: "a compilation unit"
+		def info = CompilationStorage.allCompilationInfo.stream()
+				.filter { it.qualifiedType.name == Helper.QUALIFIED_TYPE_DUMMY }
+				.findFirst().get()
+		when: "setting a processor"
+		info.runProcessor(new CompilationInfoProcessor<String>() {
+			@Override
+			String process(CompilationInfo ci) {
+				return ""
+			}
+		})
+
+		then: "we can obtain same instance through a getter with type"
+		info.getProcessedObject(String.class).class == String.class
+	}
+
 	def "is within scope"() {
 		given: "compilation info of dummy class"
 		def info = CompilationStorage.allCompilationInfo.stream()

@@ -2,6 +2,7 @@ package io.gitlab.arturbosch.jpal.core
 
 import com.github.javaparser.ast.CompilationUnit
 import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.Validate
 import io.gitlab.arturbosch.jpal.resolve.QualifiedType
@@ -23,6 +24,8 @@ class CompilationInfo {
 	final Path path
 	final List<QualifiedType> usedTypes
 	final Set<QualifiedType> innerClasses
+
+	private Object processedObject
 
 	private CompilationInfo(QualifiedType qualifiedType, CompilationUnit unit, Path path,
 							List<QualifiedType> usedTypes, Set<QualifiedType> innerClasses) {
@@ -53,26 +56,14 @@ class CompilationInfo {
 		return new CompilationInfo(qualifiedType, unit, path, types, innerClasses)
 	}
 
-	private static List<QualifiedType> replaceQualifiedTypesOfInnerClasses(List<QualifiedType> types,
-																		   Set<QualifiedType> innerClasses) {
-		types.collect { QualifiedType type ->
-			def find = innerClasses.find { sameNameAndPackage(it, type) }
-			if (find) find else type
-		}
-	}
-
-	private static boolean sameNameAndPackage(QualifiedType first, QualifiedType second) {
-		first.shortName == second.shortName && first.onlyPackageName == second.onlyPackageName
-	}
-
 	/**
 	 * Same as above with the difference that CompilationInfoProcessor's can be invoked
 	 * on the created CompilationInfo.
 	 */
 	static CompilationInfo of(QualifiedType qualifiedType, CompilationUnit unit, Path path,
-							  List<CompilationInfoProcessor> processors) {
+							  CompilationInfoProcessor processor) {
 		def info = of(qualifiedType, unit, path)
-		processors.each { it.process(info) }
+		info.runProcessor(processor)
 		return info
 	}
 
@@ -86,6 +77,31 @@ class CompilationInfo {
 		Validate.notNull(type)
 		Validate.isTrue(type.name.contains("."), "Is not a qualified type!")
 		return usedTypes.contains(type)
+	}
+
+	@PackageScope
+	<T> void runProcessor(CompilationInfoProcessor<T> processor) {
+		this.processedObject = processor.process(this)
+	}
+
+	@PackageScope
+	<T> T getProcessedObject(Class<T> clazz) {
+		if (processedObject.getClass() == clazz) {
+			return processedObject as T
+		}
+		throw new IllegalStateException("Processor is either not set or not the provided type!")
+	}
+
+	private static List<QualifiedType> replaceQualifiedTypesOfInnerClasses(List<QualifiedType> types,
+																		   Set<QualifiedType> innerClasses) {
+		types.collect { QualifiedType type ->
+			def find = innerClasses.find { sameNameAndPackage(it, type) }
+			if (find) find else type
+		}
+	}
+
+	private static boolean sameNameAndPackage(QualifiedType first, QualifiedType second) {
+		first.shortName == second.shortName && first.onlyPackageName == second.onlyPackageName
 	}
 
 	@Override
