@@ -9,8 +9,8 @@ import io.gitlab.arturbosch.jpal.resolve.QualifiedType
 /**
  * @author Artur Bosch
  */
-@EqualsAndHashCode
-@ToString(includePackage = false)
+@EqualsAndHashCode(callSuper = true)
+@ToString(includePackage = false, includeSuper = true, includeNames = false)
 class ParameterSymbolReference extends VariableSymbolReference {
 	Parameter parameter
 

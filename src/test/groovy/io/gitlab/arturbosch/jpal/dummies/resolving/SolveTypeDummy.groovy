@@ -6,5 +6,5 @@ package io.gitlab.arturbosch.jpal.dummies.resolving
 @SuppressWarnings("ALL")
 class SolveTypeDummy {
 	String s
-	String method() { s }
+	String method(int x) { s }
 }

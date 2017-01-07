@@ -33,7 +33,7 @@ public class ResolvingDummy {
 	}
 
 	public String m3() {
-		String method = solveDummy.method();
+		String method = solveDummy.method(x);
 		return inner.s + method;
 	}
 

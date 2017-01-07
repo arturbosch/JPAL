@@ -21,7 +21,7 @@ class SymbolResolverTest extends Specification {
 
 		when: "resolving all symbols"
 		def resolvedSymbols = symbols.collect { Resolver.resolveSymbol(it, resolutionData) }
-		println resolvedSymbols
+		resolvedSymbols.each { println it }
 
 		then: "one SymbolReference must be a field"
 		true
@@ -39,7 +39,11 @@ class SymbolResolverTest extends Specification {
 		def resolvedSymbols = symbols.collect { Resolver.resolveSymbol(it, resolutionData) }
 
 		then: "one SymbolReference must be a field"
-		resolvedSymbols.find { it.get().isField() }
+		resolvedSymbols.stream()
+				.map { it.get() }
+				.filter { it.isVariable() }
+				.map { it.asVariable() }
+				.filter { it.isField() }.find()
 	}
 
 	def "resolve variables domain test"() {
@@ -76,9 +80,9 @@ class SymbolResolverTest extends Specification {
 		def resolvedTypeInMethodOfD = Resolver.resolveSymbolInParameters(returnD, method, resolutionData)
 
 		then: "getting right QualifiedType of type int"
-		resolvedTypeOfA.get().isField()
+		resolvedTypeOfA.get().asVariable().isField()
 		resolvedTypeInMethodOfD.get().isParameter()
-		resolvedTypeOfC.get().isLocaleVariable()
+		resolvedTypeOfC.get().asVariable().isLocaleVariable()
 
 		resolvedTypeOfA.get().qualifiedType == expectedQualifiedType
 		resolvedTypeOfB.get().qualifiedType == expectedQualifiedType
