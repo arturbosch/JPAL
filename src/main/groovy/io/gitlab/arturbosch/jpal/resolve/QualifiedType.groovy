@@ -16,6 +16,9 @@ import io.gitlab.arturbosch.jpal.internal.Validate
 @CompileStatic
 class QualifiedType {
 
+	@SuppressWarnings("UnnecessaryQualifiedReference") // Groovy Compiler Bug?
+	static QualifiedType UNKNOWN = new QualifiedType("UNKNOWN", QualifiedType.TypeToken.UNKNOWN)
+
 	final String name
 	final String shortName
 	final String onlyPackageName

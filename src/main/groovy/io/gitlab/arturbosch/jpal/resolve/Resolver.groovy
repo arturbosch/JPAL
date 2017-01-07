@@ -1,12 +1,24 @@
 package io.gitlab.arturbosch.jpal.resolve
 
+import com.github.javaparser.ast.body.FieldDeclaration
+import com.github.javaparser.ast.body.MethodDeclaration
+import com.github.javaparser.ast.body.Parameter
+import com.github.javaparser.ast.expr.FieldAccessExpr
+import com.github.javaparser.ast.expr.SimpleName
+import com.github.javaparser.ast.expr.ThisExpr
 import com.github.javaparser.ast.type.PrimitiveType
 import com.github.javaparser.ast.type.Type
 import groovy.transform.CompileStatic
+import io.gitlab.arturbosch.jpal.ast.LocaleVariableHelper
+import io.gitlab.arturbosch.jpal.ast.NodeHelper
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import io.gitlab.arturbosch.jpal.internal.JdkHelper
 import io.gitlab.arturbosch.jpal.internal.Validate
+import io.gitlab.arturbosch.jpal.resolve.symbols.FieldSymbolReference
+import io.gitlab.arturbosch.jpal.resolve.symbols.LocaleVariableSymbolReference
+import io.gitlab.arturbosch.jpal.resolve.symbols.ParameterSymbolReference
+import io.gitlab.arturbosch.jpal.resolve.symbols.VariableSymbolReference
 
 /**
  * Provides a static method to resolve the full qualified name of a class type.
@@ -71,7 +83,7 @@ final class Resolver {
 			}
 		}
 
-		return new QualifiedType("UNKNOWN", QualifiedType.TypeToken.UNKNOWN)
+		return QualifiedType.UNKNOWN
 	}
 
 	private static Optional<QualifiedType> getFromImports(String name, ResolutionData data) {
@@ -98,4 +110,78 @@ final class Resolver {
 	private static String trimInnerClasses(String name) {
 		name.contains(".") ? name.substring(0, name.indexOf('.')) : name
 	}
+
+	static Optional<? extends VariableSymbolReference> resolveSymbol(SimpleName symbol, ResolutionData data) {
+		if (isThisAccess(symbol)) {
+			return resolveSymbolInFieldsOfThisClass(symbol, data)
+		}
+		def maybeMethod = NodeHelper.findDeclaringMethod(symbol)
+		if (maybeMethod.isPresent()) {
+			def wasInMethod = resolveSymbolInMethod(symbol, maybeMethod.get(), data)
+			if (wasInMethod.isPresent()) {
+				return wasInMethod
+			}
+		}
+		return resolveSymbolInFields(symbol, data)
+	}
+
+	private static boolean isThisAccess(SimpleName symbol) {
+		def isThis = false
+		def parent = symbol.getParentNode()
+		if (parent.isPresent() && parent.get() instanceof FieldAccessExpr) {
+			def fieldAccessExpr = parent.get() as FieldAccessExpr
+			fieldAccessExpr.scope.ifPresent {
+				isThis = it instanceof ThisExpr
+			}
+		}
+		return isThis
+	}
+
+	static Optional<FieldSymbolReference> resolveSymbolInFieldsOfThisClass(SimpleName symbol, ResolutionData data) {
+		return resolveSymbolInFields(symbol, data)
+	}
+
+	static Optional<FieldSymbolReference> resolveSymbolInFields(SimpleName symbol, ResolutionData data) {
+
+		def clazz = NodeHelper.findDeclaringClass(symbol)
+		if (clazz.isPresent()) {
+			def fields = clazz.get().getNodesByType(FieldDeclaration.class)
+			def maybe = fields.find { it.variables.find { it.name == symbol } }
+			if (maybe != null) {
+				def qualifiedType = getQualifiedType(data, maybe.commonType)
+				if (qualifiedType != QualifiedType.UNKNOWN) {
+					return Optional.of(new FieldSymbolReference(symbol, qualifiedType, maybe))
+				}
+			}
+		}
+		return Optional.empty()
+	}
+
+	static Optional<? extends VariableSymbolReference> resolveSymbolInMethod(SimpleName symbol,
+																			 MethodDeclaration method, ResolutionData data) {
+		def locales = LocaleVariableHelper.find(method)
+		def maybe = locales.find { it.variables.find { it.name == symbol } }
+		if (maybe != null) {
+			def qualifiedType = getQualifiedType(data, maybe.commonType)
+			if (qualifiedType != QualifiedType.UNKNOWN) {
+				return Optional.of(new LocaleVariableSymbolReference(symbol, qualifiedType, maybe))
+			}
+		}
+		return resolveSymbolInParameters(symbol, method, data)
+	}
+
+	static Optional<ParameterSymbolReference> resolveSymbolInParameters(SimpleName symbol,
+																		MethodDeclaration method, ResolutionData data) {
+		def parameters = method.getNodesByType(Parameter.class)
+		def maybe = parameters.find { it.name == symbol }
+		if (maybe != null) {
+			def qualifiedType = getQualifiedType(data, maybe.type)
+			if (qualifiedType != QualifiedType.UNKNOWN) {
+				return Optional.of(
+						new ParameterSymbolReference(symbol, qualifiedType, maybe))
+			}
+		}
+		return Optional.empty()
+	}
+
 }
