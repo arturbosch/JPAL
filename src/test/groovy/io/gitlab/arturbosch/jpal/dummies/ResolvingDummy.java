@@ -34,6 +34,8 @@ public class ResolvingDummy {
 
 	public String m3() {
 		String method = solveDummy.method(x);
+		m2();
+	// oO int x = this.x;
 		return inner.s + method;
 	}
 

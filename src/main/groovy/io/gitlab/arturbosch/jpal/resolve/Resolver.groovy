@@ -1,7 +1,9 @@
 package io.gitlab.arturbosch.jpal.resolve
 
+import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.MethodDeclaration
 import com.github.javaparser.ast.body.Parameter
+import com.github.javaparser.ast.expr.Expression
 import com.github.javaparser.ast.expr.FieldAccessExpr
 import com.github.javaparser.ast.expr.MethodCallExpr
 import com.github.javaparser.ast.expr.NameExpr
@@ -9,12 +11,14 @@ import com.github.javaparser.ast.expr.SimpleName
 import com.github.javaparser.ast.expr.ThisExpr
 import com.github.javaparser.ast.type.PrimitiveType
 import com.github.javaparser.ast.type.Type
+import com.github.javaparser.ast.type.VoidType
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.LocaleVariableHelper
 import io.gitlab.arturbosch.jpal.ast.NodeHelper
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import io.gitlab.arturbosch.jpal.internal.JdkHelper
+import io.gitlab.arturbosch.jpal.internal.Printer
 import io.gitlab.arturbosch.jpal.internal.Validate
 import io.gitlab.arturbosch.jpal.resolve.symbols.FieldSymbolReference
 import io.gitlab.arturbosch.jpal.resolve.symbols.LocaleVariableSymbolReference
@@ -61,12 +65,16 @@ final class Resolver {
 		Validate.notNull(data)
 		Validate.notNull(type)
 
+		if (type instanceof VoidType) {
+			return new QualifiedType("java.lang." + type.toString(Printer.NO_COMMENTS), QualifiedType.TypeToken.JAVA_REFERENCE)
+		}
+
 		if (type instanceof PrimitiveType) {
-			return new QualifiedType(type.type.toString(), QualifiedType.TypeToken.PRIMITIVE)
+			return new QualifiedType(type.type.name(), QualifiedType.TypeToken.PRIMITIVE)
 		}
 
 		def maybeClassOrInterfaceType = TypeHelper.getClassOrInterfaceType(type)
-
+		// TODO Resolve inner classes
 		if (maybeClassOrInterfaceType.isPresent()) {
 			def realType = maybeClassOrInterfaceType.get()
 			if (realType.isBoxedType()) {
@@ -134,7 +142,8 @@ final class Resolver {
 		def maybeCallExpr = asMethodCall(symbol)
 		if (maybeCallExpr) {
 			if (isThisAccess(maybeCallExpr)) {
-				return resolveMethodSymbol(symbol, data, data, maybeCallExpr)
+				// Introduce ResolutionData inside CompilationInfo
+				return resolveMethodSymbol(symbol, data, NodeHelper.findDeclaringCompilationUnit(symbol).get(), maybeCallExpr)
 			} else { // resolve parent symbol
 				return resolveMethodSymbolGlobal(symbol, data, maybeCallExpr)
 			}
@@ -216,22 +225,21 @@ final class Resolver {
 
 	private
 	static Optional<MethodSymbolReference> resolveMethodSymbol(SimpleName symbol, ResolutionData dataOfArguments,
-															   ResolutionData dataOfParameters, MethodCallExpr methodCall) {
-		def clazz = NodeHelper.findDeclaringClass(symbol).orElse(null)
-		if (clazz) {
-			def numberOfArguments = methodCall.arguments.size()
-			def maybe = clazz.methods.find {
-				def numberOfParameters = it.parameters.size()
-				// TODO evaluate arguments and parameters
-				it.name == symbol && numberOfArguments == numberOfParameters
-			}
-			if (maybe) {
-				def qualifiedType = getQualifiedType(dataOfParameters, maybe.type)
-				if (qualifiedType != QualifiedType.UNKNOWN) {
-					return Optional.of(new MethodSymbolReference(symbol, qualifiedType, maybe))
-				}
+															   CompilationUnit searchScope, MethodCallExpr methodCall) {
+		def methods = searchScope.getNodesByType(MethodDeclaration.class)
+		def numberOfArguments = methodCall.arguments.size()
+		def maybe = methods.find {
+			def numberOfParameters = it.parameters.size()
+			// TODO evaluate arguments and parameters
+			it.name == symbol && numberOfArguments == numberOfParameters
+		}
+		if (maybe) {
+			def qualifiedType = getQualifiedType(ResolutionData.of(searchScope), maybe.type)
+			if (qualifiedType != QualifiedType.UNKNOWN) {
+				return Optional.of(new MethodSymbolReference(symbol, qualifiedType, maybe))
 			}
 		}
+
 		return Optional.empty()
 	}
 
@@ -249,7 +257,7 @@ final class Resolver {
 
 		if (symbolReference && CompilationStorage.initialized) {
 			def info = CompilationStorage.getCompilationInfo(symbolReference.qualifiedType).orElse(null)
-			return info ? resolveMethodSymbol(symbol, data, ResolutionData.of(info.unit), maybeCallExpr) : Optional.empty()
+			return info ? resolveMethodSymbol(symbol, data, info.unit, maybeCallExpr) : Optional.empty()
 		} else {
 			// TODO loop through method calls
 			println "Parent symbol resolved, but CS was not initialized"
@@ -277,7 +285,8 @@ final class Resolver {
 	}
 
 	private static boolean isThisAccess(MethodCallExpr methodCallExpr) {
-		return Optional.ofNullable(methodCallExpr.scope).filter { it instanceof ThisExpr }.isPresent()
+		def scope = Optional.ofNullable(methodCallExpr.scope)
+		return !scope.isPresent() || scope.filter { it instanceof ThisExpr }.isPresent()
 	}
 
 }

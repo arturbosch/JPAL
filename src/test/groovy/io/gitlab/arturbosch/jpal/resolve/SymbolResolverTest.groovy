@@ -3,6 +3,7 @@ package io.gitlab.arturbosch.jpal.resolve
 import com.github.javaparser.ast.expr.SimpleName
 import com.github.javaparser.ast.expr.VariableDeclarationExpr
 import io.gitlab.arturbosch.jpal.Helper
+import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import spock.lang.Specification
 
 /**
@@ -12,6 +13,7 @@ class SymbolResolverTest extends Specification {
 
 	def "resolve"() {
 		given: "symbols of method m2 of ResolvingDummy"
+		CompilationStorage.create(Helper.BASE_PATH)
 		def path = Helper.BASE_PATH.resolve("ResolvingDummy.java")
 		def unit = Helper.compile(path)
 		def resolutionData = ResolutionData.of(unit)
@@ -23,7 +25,7 @@ class SymbolResolverTest extends Specification {
 		def resolvedSymbols = symbols.collect { Resolver.resolveSymbol(it, resolutionData) }
 		resolvedSymbols.each { println it }
 
-		then: "one SymbolReference must be a field"
+		then: "resolve method call and field access"
 		true
 	}
 
