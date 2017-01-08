@@ -1,11 +1,13 @@
 package io.gitlab.arturbosch.jpal.core
 
 import com.github.javaparser.ast.CompilationUnit
+import com.github.javaparser.ast.body.TypeDeclaration
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.Validate
 import io.gitlab.arturbosch.jpal.resolve.QualifiedType
+import io.gitlab.arturbosch.jpal.resolve.ResolutionData
 
 import java.nio.file.Path
 
@@ -17,24 +19,30 @@ import java.nio.file.Path
  * @author artur
  */
 @CompileStatic
-class CompilationInfo {
+class CompilationInfo implements Processable {
 
 	final QualifiedType qualifiedType
 	final CompilationUnit unit
 	final Path path
 	final List<QualifiedType> usedTypes
-	final Set<QualifiedType> innerClasses
+	final TypeDeclaration mainType
+	final ResolutionData data
+	final Map<QualifiedType, TypeDeclaration> innerClasses
 
-	private Object processedObject
+	private CompilationInfo(QualifiedType qualifiedType,
+							TypeDeclaration mainType,
+							Map<QualifiedType, TypeDeclaration> innerClasses,
+							List<QualifiedType> usedTypes,
+							CompilationUnit unit,
+							Path path) {
 
-	private CompilationInfo(QualifiedType qualifiedType, CompilationUnit unit, Path path,
-							List<QualifiedType> usedTypes, Set<QualifiedType> innerClasses) {
-
+		this.innerClasses = innerClasses
+		this.mainType = mainType
 		this.qualifiedType = qualifiedType
 		this.unit = unit
 		this.path = path
 		this.usedTypes = usedTypes
-		this.innerClasses = innerClasses
+		this.data = ResolutionData.of(unit)
 	}
 
 	/**
@@ -46,23 +54,25 @@ class CompilationInfo {
 	 * @param path path to the root class file
 	 * @return a compilation info
 	 */
-	static CompilationInfo of(QualifiedType qualifiedType, CompilationUnit unit, Path path) {
-		Validate.notNull(qualifiedType)
+	static CompilationInfo of(CompilationUnit unit, Path path) {
 		Validate.notNull(unit)
 		Validate.notNull(path)
-		def types = TypeHelper.findAllUsedTypes(unit)
-		def innerClasses = TypeHelper.getQualifiedTypesOfInnerClasses(unit)
-		types = replaceQualifiedTypesOfInnerClasses(types, innerClasses)
-		return new CompilationInfo(qualifiedType, unit, path, types, innerClasses)
+		def usedTypes = TypeHelper.findAllUsedTypes(unit)
+		def mainClassAndInnerClassesPair = TypeHelper.getQualifiedDeclarationsOfInnerClasses(unit)
+		QualifiedType qualifiedType = mainClassAndInnerClassesPair.a.a
+		TypeDeclaration mainType = mainClassAndInnerClassesPair.a.b
+		Map<QualifiedType, TypeDeclaration> innerTypes = mainClassAndInnerClassesPair.b
+		usedTypes = replaceQualifiedTypesOfInnerClasses(usedTypes, innerTypes.keySet())
+		return new CompilationInfo(qualifiedType, mainType, innerTypes, usedTypes, unit, path)
 	}
 
 	/**
 	 * Same as above with the difference that CompilationInfoProcessor's can be invoked
 	 * on the created CompilationInfo.
 	 */
-	static CompilationInfo of(QualifiedType qualifiedType, CompilationUnit unit, Path path,
+	static CompilationInfo of(CompilationUnit unit, Path path,
 							  CompilationInfoProcessor processor) {
-		def info = of(qualifiedType, unit, path)
+		def info = of(unit, path)
 		info.runProcessor(processor)
 		return info
 	}
@@ -77,18 +87,6 @@ class CompilationInfo {
 		Validate.notNull(type)
 		Validate.isTrue(type.name.contains("."), "Is not a qualified type!")
 		return usedTypes.contains(type)
-	}
-
-	@PackageScope
-	<T> void runProcessor(CompilationInfoProcessor<T> processor) {
-		this.processedObject = processor.process(this)
-	}
-
-	def <T> T getProcessedObject(Class<T> clazz) {
-		if (processedObject.getClass() == clazz) {
-			return processedObject as T
-		}
-		throw new IllegalStateException("Processor is either not set or not the provided type!")
 	}
 
 	private static List<QualifiedType> replaceQualifiedTypesOfInnerClasses(List<QualifiedType> types,
@@ -108,5 +106,24 @@ class CompilationInfo {
 		return "CompilationInfo{" +
 				"qualifiedType=" + qualifiedType +
 				'}'
+	}
+
+	@CompileStatic
+	@PackageScope
+	trait Processable {
+
+		private Object processedObject
+
+		@PackageScope
+		<T> void runProcessor(CompilationInfoProcessor<T> processor) {
+			this.processedObject = processor.process(this as CompilationInfo)
+		}
+
+		def <T> T getProcessedObject(Class<T> clazz) {
+			if (processedObject.getClass() == clazz) {
+				return processedObject as T
+			}
+			throw new IllegalStateException("Processor is either not set or not the provided type!")
+		}
 	}
 }

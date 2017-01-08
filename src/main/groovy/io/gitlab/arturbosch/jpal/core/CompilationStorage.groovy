@@ -12,19 +12,19 @@ interface CompilationStorage {
 	/**
 	 * @return retrieves all stored qualified type keys
 	 */
-	abstract Set<QualifiedType> getAllQualifiedTypes()
+	Set<QualifiedType> getAllQualifiedTypes()
 
 	/**
 	 * @return retrieves all stores compilation info's
 	 */
-	abstract List<CompilationInfo> getAllCompilationInfo()
+	List<CompilationInfo> getAllCompilationInfo()
 	/**
 	 * Maybe a compilation unit for given path is found.
 	 *
 	 * @param path path for which the info is asked
 	 * @return optional of compilation unit
 	 */
-	abstract Optional<CompilationInfo> getCompilationInfo(Path path)
+	Optional<CompilationInfo> getCompilationInfo(Path path)
 
 	/**
 	 * Maybe a compilation unit for given qualified type is found.
@@ -32,6 +32,6 @@ interface CompilationStorage {
 	 * @param qualifiedType type for which the info is asked
 	 * @return optional of compilation unit
 	 */
-	abstract Optional<CompilationInfo> getCompilationInfo(QualifiedType qualifiedType)
+	Optional<CompilationInfo> getCompilationInfo(QualifiedType qualifiedType)
 
 }

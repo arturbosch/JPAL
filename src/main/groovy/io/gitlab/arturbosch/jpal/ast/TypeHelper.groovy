@@ -1,13 +1,16 @@
 package io.gitlab.arturbosch.jpal.ast
 
 import com.github.javaparser.ast.CompilationUnit
+import com.github.javaparser.ast.Node
 import com.github.javaparser.ast.PackageDeclaration
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.TypeDeclaration
 import com.github.javaparser.ast.type.ClassOrInterfaceType
 import com.github.javaparser.ast.type.Type
+import com.github.javaparser.utils.Pair
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.internal.Validate
+import io.gitlab.arturbosch.jpal.nested.NoClassesException
 import io.gitlab.arturbosch.jpal.resolve.QualifiedType
 import io.gitlab.arturbosch.jpal.resolve.ResolutionData
 import io.gitlab.arturbosch.jpal.resolve.Resolver
@@ -123,6 +126,34 @@ final class TypeHelper {
 			}.collect(Collectors.toSet())
 		} else {
 			return Collections.emptySet()
+		}
+	}
+
+	static Pair<Pair<QualifiedType, TypeDeclaration>, Map<QualifiedType, TypeDeclaration>> getQualifiedDeclarationsOfInnerClasses(CompilationUnit unit) {
+		List<TypeDeclaration> types = unit.getTypes()
+		if (types.size() >= 1) {
+
+			TypeDeclaration mainClass = types[0]
+			String packageName = unit.packageDeclaration.map { it.nameAsString }.orElse("")
+			String outerClassName = mainClass.name
+			def mainClassQualifiedType = new QualifiedType("$packageName.$outerClassName", QualifiedType.TypeToken.REFERENCE)
+
+			def innerTypes = findInnerTypes(mainClass, "$packageName.$outerClassName.")
+			return new Pair<>(new Pair<>(mainClassQualifiedType, mainClass), innerTypes)
+		} else {
+			throw new NoClassesException("No classes found inside this compilation unit: \n $unit")
+		}
+	}
+
+	private static Map<QualifiedType, TypeDeclaration> findInnerTypes(Node n, String packagePlusMain) {
+		def types = Validate.notNull(n).getNodesByType(TypeDeclaration.class)
+		return types.stream().filter { it.parentNode instanceof Optional<TypeDeclaration> }
+				.collect()
+				.collectEntries {
+			def declaration = it as TypeDeclaration
+			def qualifiedName = "$packagePlusMain${declaration.nameAsString}"
+			def qualifiedType = new QualifiedType(qualifiedName, QualifiedType.TypeToken.REFERENCE)
+			[qualifiedType, it]
 		}
 	}
 

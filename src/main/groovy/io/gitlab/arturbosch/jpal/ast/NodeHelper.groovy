@@ -6,7 +6,9 @@ import com.github.javaparser.ast.Node
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
+import com.github.javaparser.ast.body.TypeDeclaration
 import io.gitlab.arturbosch.jpal.internal.Validate
+import io.gitlab.arturbosch.jpal.resolve.QualifiedType
 
 import java.util.function.Predicate
 import java.util.stream.Collectors

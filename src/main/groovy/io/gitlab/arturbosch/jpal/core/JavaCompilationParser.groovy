@@ -37,10 +37,8 @@ class JavaCompilationParser {
 			try {
 				def unit = JavaParser.parse(it)
 				if (unit.types.isEmpty()) return
-				def clazz = getFirstDeclaredClass(unit)
-				def type = TypeHelper.getQualifiedTypeFromPackage(clazz, unit.packageDeclaration)
-				result = processor ? CompilationInfo.of(type, unit, path, processor) :
-						CompilationInfo.of(type, unit, path)
+				result = processor ? CompilationInfo.of(unit, path, processor) :
+						CompilationInfo.of(unit, path)
 			} catch (ParseException | TokenMgrException error) {
 				log.log(Level.SEVERE, "Error while compiling $path occurred", error)
 			}

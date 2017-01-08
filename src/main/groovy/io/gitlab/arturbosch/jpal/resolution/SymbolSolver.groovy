@@ -1,14 +1,48 @@
 package io.gitlab.arturbosch.jpal.resolution
 
 import com.github.javaparser.ast.expr.SimpleName
+import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.core.CompilationInfo
+import io.gitlab.arturbosch.jpal.core.CompilationStorage
+import io.gitlab.arturbosch.jpal.resolve.Resolver
 import io.gitlab.arturbosch.jpal.resolve.symbols.SymbolReference
 
 /**
  * @author Artur Bosch
  */
-final class SymbolSolver {
+@CompileStatic
+final class SymbolSolver implements Solver {
 
-	static Optional<? extends SymbolReference> resolve(SimpleName symbol, CompilationInfo info) {
+	private CompilationStorage storage
+	private Resolver resolver
+	private MethodLevelVariableSymbolSolver variableSolver
+	private GlobalClassLevelSymbolSolver globalSolver
+	private LocalClassLevelSymbolSolver classLevelSolver
+	private DeclarationLevelSymbolSolver declarationSolver
+
+	SymbolSolver(CompilationStorage storage) {
+		this.storage = storage
+		this.resolver = new Resolver(storage)
+		this.variableSolver = new MethodLevelVariableSymbolSolver(resolver)
+		this.globalSolver = new GlobalClassLevelSymbolSolver(resolver, storage)
+		this.classLevelSolver = new LocalClassLevelSymbolSolver(resolver)
+		this.declarationSolver = new DeclarationLevelSymbolSolver(resolver)
 	}
+
+	@Override
+	Optional<? extends SymbolReference> resolve(SimpleName symbol, CompilationInfo info) {
+		// if symbol is in a declaration, solving is trivial
+		def symbolReference = declarationSolver.resolve(symbol, info)
+		if (symbolReference.isPresent()) return symbolReference
+
+		// if the calls/accesses are chained it is still possible for the symbol to refer to a local class
+		// so a global solver has also a local class solver. A global solver furthermore can use the
+		// compilation storage to navigate through called/accessed classes by resolving the whole message chain
+		symbolReference = globalSolver.resolve(symbol, info)
+		if (symbolReference.isPresent()) return symbolReference
+
+		// Ok, the symbol is located inside this resolution data
+		return variableSolver.resolve(symbol, info)
+	}
+
 }
