@@ -244,7 +244,7 @@ final class Resolver {
 
 	private static Optional<? extends SymbolReference> resolveMethodSymbolGlobal(SimpleName symbol, ResolutionData data,
 																				 MethodCallExpr maybeCallExpr) {
-		def parentSymbol = Optional.ofNullable(maybeCallExpr.scope)
+		def parentSymbol = maybeCallExpr.scope
 				.filter { it instanceof NameExpr }
 				.map { it as NameExpr }
 				.map { it.name }
@@ -284,7 +284,7 @@ final class Resolver {
 	}
 
 	private static boolean isThisAccess(MethodCallExpr methodCallExpr) {
-		def scope = Optional.ofNullable(methodCallExpr.scope)
+		def scope = methodCallExpr.scope
 		return !scope.isPresent() || scope.filter { it instanceof ThisExpr }.isPresent()
 	}
 
