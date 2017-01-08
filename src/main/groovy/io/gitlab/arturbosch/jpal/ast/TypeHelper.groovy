@@ -74,7 +74,7 @@ final class TypeHelper {
 	static QualifiedType getQualifiedType(ClassOrInterfaceDeclaration n, CompilationUnit unit) {
 		def name = n.nameAsString
 		def holder = ResolutionData.of(unit)
-		return Resolver.getQualifiedType(holder, new ClassOrInterfaceType(name))
+		return new Resolver().getQualifiedType(holder, new ClassOrInterfaceType(name))
 	}
 
 	/**
@@ -137,7 +137,7 @@ final class TypeHelper {
 				.unique { a, b -> a.nameAsString != b.nameAsString ? 1 : 0 }
 				.stream()
 				.map { withOuterClasses(it) }
-				.map { Resolver.getQualifiedType(resolutionData, it) }
+				.map { new Resolver().getQualifiedType(resolutionData, it) }
 				.collect(Collectors.toList())
 	}
 

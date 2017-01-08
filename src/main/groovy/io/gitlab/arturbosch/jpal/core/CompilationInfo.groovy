@@ -39,7 +39,7 @@ class CompilationInfo {
 
 	/**
 	 * Factory method to build compilation info's. In most cases you don't need
-	 * to build them by yourself, just use CompilationStorage or -Tree.
+	 * to build them by yourself, just use DefaultCompilationStorage or -Tree.
 	 *
 	 * @param qualifiedType qualified type of the root class
 	 * @param unit corresponding compilation unit

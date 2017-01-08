@@ -49,7 +49,11 @@ import io.gitlab.arturbosch.jpal.resolve.symbols.VariableSymbolReference
 @CompileStatic
 final class Resolver {
 
-	private Resolver() {}
+	private CompilationStorage storage
+
+	Resolver(CompilationStorage storage = null) {
+		this.storage = storage
+	}
 
 	/**
 	 * Tries to find the correct qualified name. Considered options are
@@ -61,7 +65,7 @@ final class Resolver {
 	 * @param type type of given declaration
 	 * @return the qualified type of given type
 	 */
-	static QualifiedType getQualifiedType(ResolutionData data, Type type) {
+	QualifiedType getQualifiedType(ResolutionData data, Type type) {
 		Validate.notNull(data)
 		Validate.notNull(type)
 
@@ -96,7 +100,7 @@ final class Resolver {
 		return QualifiedType.UNKNOWN
 	}
 
-	private static Optional<QualifiedType> getFromImports(String name, ResolutionData data) {
+	private Optional<QualifiedType> getFromImports(String name, ResolutionData data) {
 		Validate.notEmpty(name)
 		def importName = trimInnerClasses(name)
 
@@ -107,21 +111,21 @@ final class Resolver {
 			def typeToken = qualifiedName.startsWith("java") ?
 					QualifiedType.TypeToken.JAVA_REFERENCE : QualifiedType.TypeToken.REFERENCE
 			return Optional.of(new QualifiedType(qualifiedNameWithInnerClass, typeToken))
-		} else if (CompilationStorage.isInitialized()) {
+		} else if (storage) {
 			return data.importsWithAsterisk.stream()
 					.map { new QualifiedType("$it.$name", QualifiedType.TypeToken.REFERENCE) }
-					.filter { CompilationStorage.getCompilationInfo(it).isPresent() }
+					.filter { storage.getCompilationInfo(it).isPresent() }
 					.findFirst()
 
 		}
-		return Optional.empty()
+		Optional.empty()
 	}
 
 	private static String trimInnerClasses(String name) {
 		name.contains(".") ? name.substring(0, name.indexOf('.')) : name
 	}
 
-	static Optional<? extends SymbolReference> resolveSymbol(SimpleName symbol, ResolutionData data) {
+	Optional<? extends SymbolReference> resolveSymbol(SimpleName symbol, ResolutionData data) {
 
 		// MethodCalls and FieldAccesses must be handled before searching locally for declarations
 		// for this we take a look at the parent as a simple name does not tell us the scope of the symbol
@@ -161,8 +165,8 @@ final class Resolver {
 		return resolveSymbolInFields(symbol, data)
 	}
 
-	private static Optional<? extends SymbolReference> resolveSymbolInFieldsGlobal(FieldAccessExpr maybeFieldAccess,
-																				   ResolutionData data, SimpleName symbol) {
+	private Optional<? extends SymbolReference> resolveSymbolInFieldsGlobal(FieldAccessExpr maybeFieldAccess,
+																			ResolutionData data, SimpleName symbol) {
 		def maybeScope = maybeFieldAccess.scope
 		def parentSymbol = maybeScope.filter { it instanceof NameExpr }
 				.map { it as NameExpr }
@@ -171,8 +175,8 @@ final class Resolver {
 
 		SymbolReference symbolReference = parentSymbol ?
 				resolveSymbol(parentSymbol, data).orElse(null) : null
-		if (symbolReference && CompilationStorage.initialized) {
-			def info = CompilationStorage.getCompilationInfo(symbolReference.qualifiedType).orElse(null)
+		if (symbolReference) {
+			def info = storage.getCompilationInfo(symbolReference.qualifiedType).orElse(null)
 			return info ? resolveFieldSymbol(symbol, info) : Optional.empty()
 		} else {
 			println "Parent symbol resolved, but CS was not initialized"
@@ -180,7 +184,7 @@ final class Resolver {
 		}
 	}
 
-	static Optional<FieldSymbolReference> resolveFieldSymbol(SimpleName symbol, CompilationInfo info) {
+	Optional<FieldSymbolReference> resolveFieldSymbol(SimpleName symbol, CompilationInfo info) {
 		def data = ResolutionData.of(info.unit)
 		def fields = info.unit.getNodesByType(FieldDeclaration)
 		def maybe = fields.find { it.variables.find { it.name == symbol } }
@@ -193,7 +197,7 @@ final class Resolver {
 		return Optional.empty()
 	}
 
-	static Optional<FieldSymbolReference> resolveSymbolInFields(SimpleName symbol, ResolutionData data) {
+	Optional<FieldSymbolReference> resolveSymbolInFields(SimpleName symbol, ResolutionData data) {
 
 		def clazz = NodeHelper.findDeclaringClass(symbol).orElse(null)
 		if (clazz) {
@@ -209,8 +213,8 @@ final class Resolver {
 		return Optional.empty()
 	}
 
-	static Optional<? extends VariableSymbolReference> resolveSymbolInMethod(SimpleName symbol,
-																			 MethodDeclaration method, ResolutionData data) {
+	Optional<? extends VariableSymbolReference> resolveSymbolInMethod(SimpleName symbol,
+																	  MethodDeclaration method, ResolutionData data) {
 		def locales = LocaleVariableHelper.find(method)
 		def maybe = locales.find { it.variables.find { it.name == symbol } }
 		if (maybe != null) {
@@ -222,8 +226,8 @@ final class Resolver {
 		return resolveSymbolInParameters(symbol, method, data)
 	}
 
-	static Optional<ParameterSymbolReference> resolveSymbolInParameters(SimpleName symbol,
-																		MethodDeclaration method, ResolutionData data) {
+	Optional<ParameterSymbolReference> resolveSymbolInParameters(SimpleName symbol,
+																 MethodDeclaration method, ResolutionData data) {
 		def parameters = method.getNodesByType(Parameter.class)
 		def maybe = parameters.find { it.name == symbol }
 		if (maybe != null) {
@@ -236,8 +240,8 @@ final class Resolver {
 	}
 
 	private
-	static Optional<MethodSymbolReference> resolveMethodSymbol(SimpleName symbol, ResolutionData dataOfArguments,
-															   CompilationUnit searchScope, MethodCallExpr methodCall) {
+	Optional<MethodSymbolReference> resolveMethodSymbol(SimpleName symbol, ResolutionData dataOfArguments,
+														CompilationUnit searchScope, MethodCallExpr methodCall) {
 		def methods = searchScope.getNodesByType(MethodDeclaration.class)
 		def numberOfArguments = methodCall.arguments.size()
 		def maybe = methods.find {
@@ -255,8 +259,8 @@ final class Resolver {
 		return Optional.empty()
 	}
 
-	private static Optional<? extends SymbolReference> resolveMethodSymbolGlobal(SimpleName symbol, ResolutionData data,
-																				 MethodCallExpr maybeCallExpr) {
+	private Optional<? extends SymbolReference> resolveMethodSymbolGlobal(SimpleName symbol, ResolutionData data,
+																		  MethodCallExpr maybeCallExpr) {
 		def parentSymbol = maybeCallExpr.scope
 				.filter { it instanceof NameExpr }
 				.map { it as NameExpr }
@@ -267,8 +271,8 @@ final class Resolver {
 		SymbolReference symbolReference = parentSymbol ?
 				resolveSymbol(parentSymbol, data).orElse(null) : null
 
-		if (symbolReference && CompilationStorage.initialized) {
-			def info = CompilationStorage.getCompilationInfo(symbolReference.qualifiedType).orElse(null)
+		if (symbolReference) {
+			def info = storage.getCompilationInfo(symbolReference.qualifiedType).orElse(null)
 			return info ? resolveMethodSymbol(symbol, data, info.unit, maybeCallExpr) : Optional.empty()
 		} else {
 			// TODO loop through method calls

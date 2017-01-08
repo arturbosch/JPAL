@@ -9,14 +9,15 @@ import spock.lang.Specification
  */
 class CompilationInfoTest extends Specification {
 
+	CompilationStorage storage
+
 	def setup() {
-		CompilationStorage.create(Helper.BASE_PATH)
-		assert CompilationStorage.isInitialized()
+		storage = JPAL.new(Helper.BASE_PATH)
 	}
 
 	def "can set and retrieve processor"() {
 		given: "a compilation unit"
-		def info = CompilationStorage.allCompilationInfo.stream()
+		def info = storage.allCompilationInfo.stream()
 				.filter { it.qualifiedType.name == Helper.QUALIFIED_TYPE_DUMMY }
 				.findFirst().get()
 		when: "setting a processor"
@@ -33,7 +34,7 @@ class CompilationInfoTest extends Specification {
 
 	def "is within scope"() {
 		given: "compilation info of dummy class"
-		def info = CompilationStorage.allCompilationInfo.stream()
+		def info = storage.allCompilationInfo.stream()
 				.filter { it.qualifiedType.name == Helper.QUALIFIED_TYPE_DUMMY }
 				.findFirst().get()
 		when: "testing different types to for being in scope"
@@ -61,7 +62,7 @@ class CompilationInfoTest extends Specification {
 				"io.gitlab.arturbosch.jpal.dummies.test.InnerClassesDummy.InnerClass.InnerInnerClass",
 				QualifiedType.TypeToken.REFERENCE)
 		when: "getting the declaring class of this inner class"
-		def info = CompilationStorage.getCompilationInfo(qualifiedType).get()
+		def info = storage.getCompilationInfo(qualifiedType).get()
 		then: "info has all inner classes"
 		info.innerClasses.size() == 2
 	}

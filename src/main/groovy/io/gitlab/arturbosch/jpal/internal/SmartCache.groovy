@@ -36,6 +36,14 @@ final class SmartCache<K, V> {
 		cache.remove(key)
 	}
 
+	Set<K> keys() {
+		cache.keySet()
+	}
+
+	List<V> values() {
+		cache.values().toList()
+	}
+
 	/**
 	 * Internal representation of this cache.
 	 *
