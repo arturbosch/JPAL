@@ -1,6 +1,7 @@
 package io.gitlab.arturbosch.jpal.resolve
 
 import com.github.javaparser.ast.CompilationUnit
+import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
 import com.github.javaparser.ast.body.Parameter
 import com.github.javaparser.ast.expr.FieldAccessExpr
@@ -15,9 +16,9 @@ import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.LocaleVariableHelper
 import io.gitlab.arturbosch.jpal.ast.NodeHelper
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
+import io.gitlab.arturbosch.jpal.core.CompilationInfo
 import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import io.gitlab.arturbosch.jpal.internal.JdkHelper
-import io.gitlab.arturbosch.jpal.internal.Printer
 import io.gitlab.arturbosch.jpal.internal.Validate
 import io.gitlab.arturbosch.jpal.resolve.symbols.FieldSymbolReference
 import io.gitlab.arturbosch.jpal.resolve.symbols.LocaleVariableSymbolReference
@@ -65,30 +66,29 @@ final class Resolver {
 		Validate.notNull(type)
 
 		if (type instanceof VoidType) {
-			return new QualifiedType("java.lang." + type.toString(Printer.NO_COMMENTS), QualifiedType.TypeToken.JAVA_REFERENCE)
+			return QualifiedType.VOID
 		}
 
 		if (type instanceof PrimitiveType) {
 			return new QualifiedType(type.type.name(), QualifiedType.TypeToken.PRIMITIVE)
 		}
 
-		def maybeClassOrInterfaceType = TypeHelper.getClassOrInterfaceType(type)
-		// TODO Resolve inner classes
-		if (maybeClassOrInterfaceType.isPresent()) {
-			def realType = maybeClassOrInterfaceType.get()
+		def maybeType = TypeHelper.getClassOrInterfaceType(type).orElse(null)
+		if (maybeType) {
+			def realType = data.appendOuterTypeIfInnerType(maybeType)
 			if (realType.isBoxedType()) {
 				return new QualifiedType("java.lang." + realType.name, QualifiedType.TypeToken.BOXED_PRIMITIVE)
 			} else {
-				String name = realType.name
-				def maybeFromImports = getFromImports(name, data)
+				String typeName = realType.name
+				def maybeFromImports = getFromImports(typeName, data)
 				if (maybeFromImports.isPresent()) {
 					return maybeFromImports.get()
 				} else {
-					if (JdkHelper.isPartOfJava(name)) {
-						return new QualifiedType("java.lang." + name, QualifiedType.TypeToken.JAVA_REFERENCE)
+					if (JdkHelper.isPartOfJava(typeName)) {
+						return new QualifiedType("java.lang." + typeName, QualifiedType.TypeToken.JAVA_REFERENCE)
 					}
 					// lets assume it is in the same package
-					return new QualifiedType("$data.packageName.$name", QualifiedType.TypeToken.REFERENCE)
+					return new QualifiedType("$data.packageName.$typeName", QualifiedType.TypeToken.REFERENCE)
 				}
 			}
 		}
@@ -173,11 +173,24 @@ final class Resolver {
 				resolveSymbol(parentSymbol, data).orElse(null) : null
 		if (symbolReference && CompilationStorage.initialized) {
 			def info = CompilationStorage.getCompilationInfo(symbolReference.qualifiedType).orElse(null)
-			return info ? resolveSymbolInFields(symbol, ResolutionData.of(info.unit)) : Optional.empty()
+			return info ? resolveFieldSymbol(symbol, info) : Optional.empty()
 		} else {
 			println "Parent symbol resolved, but CS was not initialized"
 			return Optional.empty()
 		}
+	}
+
+	static Optional<FieldSymbolReference> resolveFieldSymbol(SimpleName symbol, CompilationInfo info) {
+		def data = ResolutionData.of(info.unit)
+		def fields = info.unit.getNodesByType(FieldDeclaration)
+		def maybe = fields.find { it.variables.find { it.name == symbol } }
+		if (maybe) {
+			def qualifiedType = getQualifiedType(data, maybe.commonType)
+			if (qualifiedType != QualifiedType.UNKNOWN) {
+				return Optional.of(new FieldSymbolReference(symbol, qualifiedType, maybe))
+			}
+		}
+		return Optional.empty()
 	}
 
 	static Optional<FieldSymbolReference> resolveSymbolInFields(SimpleName symbol, ResolutionData data) {

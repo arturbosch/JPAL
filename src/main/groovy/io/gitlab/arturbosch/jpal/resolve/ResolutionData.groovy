@@ -2,9 +2,12 @@ package io.gitlab.arturbosch.jpal.resolve
 
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.ImportDeclaration
+import com.github.javaparser.ast.body.TypeDeclaration
+import com.github.javaparser.ast.type.ClassOrInterfaceType
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.Validate
+import io.gitlab.arturbosch.jpal.nested.InnerClassesHandler
 
 import java.util.stream.Collectors
 
@@ -19,6 +22,7 @@ class ResolutionData {
 	final String packageName
 	final Map<String, String> imports
 	final List<String> importsWithAsterisk
+	final InnerClassesHandler innerClassesHandler
 
 	/**
 	 * From a not null compilation unit a resolution data is constructed containing the
@@ -38,13 +42,23 @@ class ResolutionData {
 				.filter { it.asterisk }
 				.map { it.nameAsString }.collect(Collectors.toList())
 
-		return new ResolutionData(packageName, imports, importsWithAsterisk)
+		def handler = new InnerClassesHandler(unit)
+		return new ResolutionData(packageName, imports, importsWithAsterisk, handler)
 	}
 
-	private ResolutionData(String packageName, Map<String, String> imports, List<String> importsWithAsterisk) {
+	private ResolutionData(String packageName, Map<String, String> imports,
+						   List<String> importsWithAsterisk, InnerClassesHandler handler) {
 		this.packageName = packageName
 		this.imports = imports
 		this.importsWithAsterisk = importsWithAsterisk
+		this.innerClassesHandler = handler
 	}
 
+	ClassOrInterfaceType appendOuterTypeIfInnerType(ClassOrInterfaceType type) {
+		return innerClassesHandler.getUnqualifiedTypeForInnerClass(type)
+	}
+
+	TypeDeclaration getTopLevelTypeDeclaration() {
+		return innerClassesHandler.mainType
+	}
 }

@@ -14,10 +14,11 @@ import io.gitlab.arturbosch.jpal.internal.Validate
 @ToString(includeNames = false, includePackage = false, excludes = ["shortName", "onlyPackageName"])
 @EqualsAndHashCode(excludes = ["shortName", "onlyPackageName"])
 @CompileStatic
+@SuppressWarnings("UnnecessaryQualifiedReference") // Groovy Compiler Bug?
 class QualifiedType {
 
-	@SuppressWarnings("UnnecessaryQualifiedReference") // Groovy Compiler Bug?
 	static QualifiedType UNKNOWN = new QualifiedType("UNKNOWN", QualifiedType.TypeToken.UNKNOWN)
+	static QualifiedType VOID = new QualifiedType("Void", QualifiedType.TypeToken.JAVA_REFERENCE)
 
 	final String name
 	final String shortName

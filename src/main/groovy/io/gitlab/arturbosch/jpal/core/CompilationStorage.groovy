@@ -225,7 +225,8 @@ final class CompilationStorage {
 	 */
 	static Optional<CompilationInfo> getCompilationInfo(QualifiedType qualifiedType) {
 		Validate.notNull(qualifiedType)
-		return instance.typeCache.get(qualifiedType.asOuterClass())
+		def qualifiedOuterType = qualifiedType.asOuterClass()
+		return instance.typeCache.get(qualifiedOuterType)
 	}
 
 	/**
