@@ -32,6 +32,7 @@ import java.util.stream.Stream
  * @author artur
  */
 @CompileStatic
+@Deprecated
 final class CompilationTree {
 
 	private static CompilationTree tree
