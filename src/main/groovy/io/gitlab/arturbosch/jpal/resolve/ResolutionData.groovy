@@ -2,7 +2,6 @@ package io.gitlab.arturbosch.jpal.resolve
 
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.ImportDeclaration
-import com.github.javaparser.ast.body.TypeDeclaration
 import com.github.javaparser.ast.type.ClassOrInterfaceType
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
@@ -58,7 +57,4 @@ class ResolutionData {
 		return innerClassesHandler.getUnqualifiedTypeForInnerClass(type)
 	}
 
-	TypeDeclaration getTopLevelTypeDeclaration() {
-		return innerClassesHandler.mainType
-	}
 }

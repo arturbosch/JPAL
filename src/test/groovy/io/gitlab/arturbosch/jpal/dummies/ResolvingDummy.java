@@ -16,6 +16,7 @@ public class ResolvingDummy {
 	private InnerResolvingDummy inner = new InnerResolvingDummy();
 	private SolveTypeDummy solveDummy = new SolveTypeDummy();
 
+	// variable resolving
 	public int m(int d) {
 		int c = 5;
 		if (a == c) {
@@ -24,6 +25,7 @@ public class ResolvingDummy {
 		return b + d;
 	}
 
+	// same symbol name in different variables
 	public void m2() {
 		int x = 0;
 		while (true) {
@@ -32,14 +34,28 @@ public class ResolvingDummy {
 		}
 	}
 
+	// resolving 'this' or one level calls/accesses
 	public String m3() {
 		String method = solveDummy.method(x);
 		m2();
-	// oO int x = this.x;
-		return inner.s + method;
+		int x = this.x;
+		return inner.s + method + inner.call();
+	}
+
+	// resolving method chaining + object creation
+	public void m4() {
+		new ChainResolving().inner.call();
 	}
 
 	class InnerResolvingDummy {
 		String s;
+
+		String call() {
+			return "";
+		}
+	}
+
+	class ChainResolving {
+		private InnerResolvingDummy inner = new InnerResolvingDummy();
 	}
 }

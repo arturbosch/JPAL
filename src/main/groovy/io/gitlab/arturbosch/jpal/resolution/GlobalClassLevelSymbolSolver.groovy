@@ -3,11 +3,13 @@ package io.gitlab.arturbosch.jpal.resolution
 import com.github.javaparser.ast.expr.FieldAccessExpr
 import com.github.javaparser.ast.expr.MethodCallExpr
 import com.github.javaparser.ast.expr.NameExpr
+import com.github.javaparser.ast.expr.ObjectCreationExpr
 import com.github.javaparser.ast.expr.SimpleName
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.core.CompilationInfo
 import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import io.gitlab.arturbosch.jpal.resolve.Resolver
+import io.gitlab.arturbosch.jpal.resolve.symbols.ObjectCreationSymbolReference
 import io.gitlab.arturbosch.jpal.resolve.symbols.SymbolReference
 
 /**
@@ -50,21 +52,31 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 		return Optional.empty()
 	}
 
-	private Optional<? extends SymbolReference> resolveFieldSymbolGlobal(SimpleName symbol, FieldAccessExpr maybeFieldAccess,
-																		 CompilationInfo info) {
-		def maybeScope = maybeFieldAccess.scope
-		def parentSymbol = maybeScope.filter { it instanceof NameExpr }
+	private Optional<? extends SymbolReference> resolveFieldSymbolGlobal(SimpleName symbol,
+																		 FieldAccessExpr maybeFieldAccess, CompilationInfo info) {
+		// is access not chained? then it must belong to a name expr
+		SymbolReference symbolReference = maybeFieldAccess.scope
+				.filter { it instanceof NameExpr }
 				.map { it as NameExpr }
 				.map { it.name }
+				.map { methodLevelSolver.resolve(it, info) }
+				.filter { it.isPresent() }
+				.map { it.get() }
 				.orElse(null)
-
-		SymbolReference symbolReference = parentSymbol ?
-				methodLevelSolver.resolve(parentSymbol, info).orElse(null) : null
 
 		if (symbolReference) {
 			def otherInfo = storage.getCompilationInfo(symbolReference.qualifiedType).orElse(null)
 			return otherInfo ? classLevelSolver.resolveFieldSymbol(symbol, symbolReference.qualifiedType, otherInfo) : Optional.empty()
 		} else {
+			// not chained but within a object creation?
+			def objReference = maybeFieldAccess.scope
+					.filter { it instanceof ObjectCreationExpr }
+					.map { it as ObjectCreationExpr }
+					.map {
+				new ObjectCreationSymbolReference(symbol, resolver.getQualifiedType(info.data, it.type), it)
+			}
+			if (objReference.isPresent()) return objReference
+
 			// TODO loop through field/method accesses
 			println "$symbol: TODO loop through field/method accesses"
 			return Optional.empty()

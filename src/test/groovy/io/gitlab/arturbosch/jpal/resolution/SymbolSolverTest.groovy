@@ -56,4 +56,20 @@ class SymbolSolverTest extends Specification {
 		symbolReferences.find { it.isPresent() }
 	}
 
+	def "ResolutionDummy - method 4 - method/field chaining"() {
+		given: "compilation info for a class"
+		def storage = JPAL.new(Helper.BASE_PATH)
+		def solver = new SymbolSolver(storage)
+		def info = storage.getCompilationInfo(Helper.RESOLVING_DUMMY).get()
+		def symbols = Helper.nth(info.unit, 3).body.get().getNodesByType(SimpleName.class)
+		symbols.each { println it }
+
+		when: "resolving all symbols"
+		def symbolReferences = symbols.collect { solver.resolve(it, info) }
+		symbolReferences.each { println it }
+
+		then: "this.x must be a field, all others local"
+		symbolReferences.find { it.isPresent() }
+	}
+
 }
