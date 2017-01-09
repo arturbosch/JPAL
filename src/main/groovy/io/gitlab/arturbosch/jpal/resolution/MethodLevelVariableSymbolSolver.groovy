@@ -3,6 +3,7 @@ package io.gitlab.arturbosch.jpal.resolution
 import com.github.javaparser.ast.body.MethodDeclaration
 import com.github.javaparser.ast.body.Parameter
 import com.github.javaparser.ast.expr.SimpleName
+import com.github.javaparser.ast.expr.VariableDeclarationExpr
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.ast.LocaleVariableHelper
 import io.gitlab.arturbosch.jpal.ast.NodeHelper
@@ -60,21 +61,28 @@ final class MethodLevelVariableSymbolSolver implements Solver {
 	Optional<? extends VariableSymbolReference> resolveSymbolInMethod(SimpleName symbol,
 																	  MethodDeclaration method, CompilationInfo info) {
 		def locales = LocaleVariableHelper.find(method)
-		def maybe = locales.find { it.variables.find { it.name == symbol } }
-		if (maybe != null) {
-			def qualifiedType = resolver.getQualifiedType(info.data, maybe.commonType)
+		def variableDecl = locales.find { it.variables.find { it.name == symbol } }
+		if (variableDecl && symbolPositionIsAfterVariableDeclaration(symbol, variableDecl)) {
+			def qualifiedType = resolver.getQualifiedType(info.data, variableDecl.commonType)
 			if (qualifiedType != QualifiedType.UNKNOWN) {
-				return Optional.of(new LocaleVariableSymbolReference(symbol, qualifiedType, maybe))
+				return Optional.of(new LocaleVariableSymbolReference(symbol, qualifiedType, variableDecl))
 			}
 		}
 		return resolveSymbolInParameters(symbol, method, info)
+	}
+
+	private static boolean symbolPositionIsAfterVariableDeclaration(SimpleName symbol,
+																	VariableDeclarationExpr variableDecl) {
+		def range = symbol.range
+		def begin = variableDecl.begin
+		range.isPresent() && begin.isPresent() && range.get().isAfter(begin.get())
 	}
 
 	Optional<ParameterSymbolReference> resolveSymbolInParameters(SimpleName symbol,
 																 MethodDeclaration method, CompilationInfo info) {
 		def parameters = method.getNodesByType(Parameter.class)
 		def maybe = parameters.find { it.name == symbol }
-		if (maybe != null) {
+		if (maybe) {
 			def qualifiedType = resolver.getQualifiedType(info.data, maybe.type)
 			if (qualifiedType != QualifiedType.UNKNOWN) {
 				return Optional.of(new ParameterSymbolReference(symbol, qualifiedType, maybe))

@@ -19,20 +19,25 @@ final class SymbolSolver implements Solver {
 	private GlobalClassLevelSymbolSolver globalSolver
 	private LocalClassLevelSymbolSolver classLevelSolver
 	private DeclarationLevelSymbolSolver declarationSolver
+	private NameLevelSymbolSolver nameLevelSolver
 
 	SymbolSolver(CompilationStorage storage) {
 		this.storage = storage
 		this.resolver = new Resolver(storage)
 		this.variableSolver = new MethodLevelVariableSymbolSolver(resolver)
-		this.globalSolver = new GlobalClassLevelSymbolSolver(resolver, storage)
 		this.classLevelSolver = new LocalClassLevelSymbolSolver(resolver)
 		this.declarationSolver = new DeclarationLevelSymbolSolver(resolver)
+		this.nameLevelSolver = new NameLevelSymbolSolver(storage, resolver, variableSolver)
+		this.globalSolver = new GlobalClassLevelSymbolSolver(resolver, storage, nameLevelSolver, classLevelSolver)
 	}
 
 	@Override
 	Optional<? extends SymbolReference> resolve(SimpleName symbol, CompilationInfo info) {
 		// if symbol is in a declaration, solving is trivial
 		def symbolReference = declarationSolver.resolve(symbol, info)
+		if (symbolReference.isPresent()) return symbolReference
+
+		symbolReference = nameLevelSolver.resolve(symbol, info)
 		if (symbolReference.isPresent()) return symbolReference
 
 		// if the calls/accesses are chained it is still possible for the symbol to refer to a local class

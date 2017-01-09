@@ -1,15 +1,16 @@
 package io.gitlab.arturbosch.jpal.resolution
 
+import com.github.javaparser.ast.Node
 import com.github.javaparser.ast.expr.FieldAccessExpr
 import com.github.javaparser.ast.expr.MethodCallExpr
-import com.github.javaparser.ast.expr.NameExpr
-import com.github.javaparser.ast.expr.ObjectCreationExpr
 import com.github.javaparser.ast.expr.SimpleName
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.core.CompilationInfo
 import io.gitlab.arturbosch.jpal.core.CompilationStorage
+import io.gitlab.arturbosch.jpal.resolve.QualifiedType
 import io.gitlab.arturbosch.jpal.resolve.Resolver
-import io.gitlab.arturbosch.jpal.resolve.symbols.ObjectCreationSymbolReference
+import io.gitlab.arturbosch.jpal.resolve.symbols.FieldSymbolReference
+import io.gitlab.arturbosch.jpal.resolve.symbols.MethodSymbolReference
 import io.gitlab.arturbosch.jpal.resolve.symbols.SymbolReference
 
 /**
@@ -22,12 +23,18 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 	private CompilationStorage storage
 	private LocalClassLevelSymbolSolver classLevelSolver
 	private MethodLevelVariableSymbolSolver methodLevelSolver
+	private ObjectCreationSymbolSolver objectCreationSolver
+	private NameLevelSymbolSolver nameLevelSolver
 
-	GlobalClassLevelSymbolSolver(Resolver resolver, CompilationStorage storage) {
+	GlobalClassLevelSymbolSolver(Resolver resolver, CompilationStorage storage,
+								 NameLevelSymbolSolver nameLevelSolver,
+								 LocalClassLevelSymbolSolver classLevelSolver) {
 		this.storage = storage
 		this.resolver = resolver
-		this.classLevelSolver = new LocalClassLevelSymbolSolver(resolver)
+		this.classLevelSolver = classLevelSolver
 		this.methodLevelSolver = new MethodLevelVariableSymbolSolver(resolver)
+		this.objectCreationSolver = new ObjectCreationSymbolSolver(resolver)
+		this.nameLevelSolver = nameLevelSolver
 	}
 
 	@Override
@@ -39,6 +46,7 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 		if (symbolReference.isPresent()) return symbolReference
 
 		// Ok, symbol does not belong to a local class, let's search global
+
 		symbolReference = withNotNull(asFieldAccess(symbol)) {
 			resolveFieldSymbolGlobal(symbol, it, info)
 		}
@@ -52,59 +60,60 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 		return Optional.empty()
 	}
 
-	private Optional<? extends SymbolReference> resolveFieldSymbolGlobal(SimpleName symbol,
-																		 FieldAccessExpr maybeFieldAccess, CompilationInfo info) {
+	Optional<FieldSymbolReference> resolveFieldSymbolGlobal(SimpleName symbol,
+															FieldAccessExpr maybeFieldAccess,
+															CompilationInfo info) {
 		// is access not chained? then it must belong to a name expr
-		SymbolReference symbolReference = maybeFieldAccess.scope
-				.filter { it instanceof NameExpr }
-				.map { it as NameExpr }
-				.map { it.name }
-				.map { methodLevelSolver.resolve(it, info) }
-				.filter { it.isPresent() }
-				.map { it.get() }
-				.orElse(null)
-
+		SymbolReference symbolReference = nameLevelSolver.resolveNameExprScope(maybeFieldAccess.scope as Optional<Node>, info)
 		if (symbolReference) {
-			def otherInfo = storage.getCompilationInfo(symbolReference.qualifiedType).orElse(null)
-			return otherInfo ? classLevelSolver.resolveFieldSymbol(symbol, symbolReference.qualifiedType, otherInfo) : Optional.empty()
-		} else {
-			// not chained but within a object creation?
-			def objReference = maybeFieldAccess.scope
-					.filter { it instanceof ObjectCreationExpr }
-					.map { it as ObjectCreationExpr }
-					.map {
-				new ObjectCreationSymbolReference(symbol, resolver.getQualifiedType(info.data, it.type), it)
-			}
-			if (objReference.isPresent()) return objReference
-
-			// TODO loop through field/method accesses
-			println "$symbol: TODO loop through field/method accesses"
-			return Optional.empty()
+			return resolveFieldInTypeScope(symbolReference.qualifiedType, symbol)
 		}
+
+		// not chained but within an object creation expression?
+		SymbolReference objReference = objectCreationSolver.resolveInFieldAccess(symbol, maybeFieldAccess, info).orElse(null)
+		if (objReference) {
+			return resolveFieldInTypeScope(objReference.qualifiedType, symbol)
+		}
+
+		println "hello $maybeFieldAccess.parentNode"
+		// TODO loop through field/method accesses
+		println "$symbol: TODO loop through field/method accesses"
+		return Optional.empty()
 	}
 
-	private Optional<? extends SymbolReference> resolveMethodSymbolGlobal(SimpleName symbol,
-																		  MethodCallExpr maybeCallExpr,
-																		  CompilationInfo info) {
-		def parentSymbol = maybeCallExpr.scope
-				.filter { it instanceof NameExpr }
-				.map { it as NameExpr }
-				.map { it.name }
-				.orElse(null)
-
-		// TODO handle static things
-		SymbolReference symbolReference = parentSymbol ?
-				methodLevelSolver.resolve(parentSymbol, info).orElse(null) : null
-
+	Optional<MethodSymbolReference> resolveMethodSymbolGlobal(SimpleName symbol,
+															  MethodCallExpr maybeCallExpr,
+															  CompilationInfo info) {
+		// not chained but in scope of a name expr? -> we resolve the class and search for this symbol in methods
+		SymbolReference symbolReference = nameLevelSolver.resolveNameExprScope(maybeCallExpr.scope as Optional<Node>, info)
 		if (symbolReference) {
-			def searchScope = symbolReference.qualifiedType
-			def otherInfo = storage.getCompilationInfo(searchScope).orElse(null)
-			return otherInfo ? classLevelSolver.resolveMethodSymbol(symbol, maybeCallExpr, searchScope, otherInfo) : Optional.empty()
-		} else {
-			// TODO loop through field/method accesses
-			println "$symbol: TODO loop through field/method accesses"
-			return Optional.empty()
+			return resolveMethodInTypeScope(symbolReference.qualifiedType, symbol, maybeCallExpr)
 		}
+
+		// not chained but within an object creation expression?
+		symbolReference = objectCreationSolver.resolveInMethodCall(symbol, maybeCallExpr, info).orElse(null)
+		if (symbolReference) {
+			return resolveMethodInTypeScope(symbolReference.qualifiedType, symbol, maybeCallExpr)
+		}
+
+		println "hello ${maybeCallExpr.scope.get()}"
+		println "hello ${maybeCallExpr.scope.get().class}"
+		println "hello ${maybeCallExpr.scope.get().parentNode.get()}"
+		println "hello ${maybeCallExpr.scope.get().parentNode.get().class}"
+		// TODO loop through field/method accesses
+		println "$symbol: TODO loop through field/method accesses"
+		return Optional.empty()
+	}
+
+	private Optional resolveFieldInTypeScope(QualifiedType qualifiedType, SimpleName symbol) {
+		def otherInfo = storage.getCompilationInfo(qualifiedType).orElse(null)
+		return otherInfo ? classLevelSolver.resolveFieldSymbol(symbol, qualifiedType, otherInfo) : Optional.empty()
+	}
+
+	private Optional resolveMethodInTypeScope(QualifiedType qualifiedType, SimpleName symbol, MethodCallExpr maybeCallExpr) {
+		def otherInfo = storage.getCompilationInfo(qualifiedType).orElse(null)
+		// search scope is important if it is in a inner class, call expr for args<->params type comparison
+		return otherInfo ? classLevelSolver.resolveMethodSymbol(symbol, maybeCallExpr, qualifiedType, otherInfo) : Optional.empty()
 	}
 
 }

@@ -45,6 +45,8 @@ public class ResolvingDummy {
 	// resolving method chaining + object creation
 	public void m4() {
 		new ChainResolving().inner.call();
+		String result = new ChainResolving().chain().method(1);
+		SolveTypeDummy.instance().method(SolveTypeDummy.instanceField);
 	}
 
 	class InnerResolvingDummy {
@@ -57,5 +59,9 @@ public class ResolvingDummy {
 
 	class ChainResolving {
 		private InnerResolvingDummy inner = new InnerResolvingDummy();
+
+		SolveTypeDummy chain() {
+			return new SolveTypeDummy();
+		}
 	}
 }
