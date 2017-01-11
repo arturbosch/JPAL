@@ -14,17 +14,28 @@ import io.gitlab.arturbosch.jpal.resolution.symbols.SymbolReference
  */
 final class Resolver implements Solver {
 
-	private TypeSolver typeSolver
-	private SymbolSolver symbolSolver
+	private final SymbolTable table
+
+	private final TypeSolver typeSolver
+	private final SymbolSolver symbolSolver
 
 	Resolver(CompilationStorage storage) {
+		table = new SymbolTable()
 		typeSolver = new TypeSolver(storage)
 		symbolSolver = new SymbolSolver(storage)
 	}
 
 	@Override
 	Optional<? extends SymbolReference> resolve(SimpleName symbol, CompilationInfo info) {
-		return symbolSolver.resolve(symbol, info)
+		def symbolReference = table.get(symbol)
+				.orElseGet {
+			def reference = symbolSolver.resolve(symbol, info).orElse(null)
+			if (symbol) {
+				table.put(symbol, reference)
+			}
+			reference
+		}
+		return Optional.ofNullable(symbolReference)
 	}
 
 	Optional<QualifiedType> resolveType(Type type, CompilationInfo info) {

@@ -4,6 +4,7 @@ import com.github.javaparser.ast.expr.SimpleName
 import com.github.javaparser.ast.type.ClassOrInterfaceType
 import io.gitlab.arturbosch.jpal.Helper
 import io.gitlab.arturbosch.jpal.core.JPAL
+import spock.lang.Ignore
 import spock.lang.Specification
 
 /**
@@ -30,6 +31,30 @@ class ResolverTest extends Specification {
 		def references = symbols.collect { resolver.resolve(it, info) }
 		then: "all must be resolved"
 		references.stream().allMatch { it.isPresent() }
+	}
+
+	@SuppressWarnings("GrUnnecessaryDefModifier")
+	@Ignore
+	def "performance"() {
+		given: "symbols"
+		def symbols = info.unit.getNodesByType(SimpleName)
+
+		when: "running collect symbols 100 times"
+		def times = 100
+		def time = (0..times).collect {
+			benchmark {
+				symbols.collect { resolver.resolve(it, info) }
+			}
+		}.sum() / times
+		println "$time ms"
+		then: "it should be faster with symbol table"
+		true
+	}
+
+	def benchmark = { Closure block ->
+		def start = System.currentTimeMillis()
+		block()
+		System.currentTimeMillis() - start
 	}
 
 }
