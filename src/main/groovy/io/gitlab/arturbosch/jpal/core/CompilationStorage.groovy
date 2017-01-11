@@ -1,6 +1,6 @@
 package io.gitlab.arturbosch.jpal.core
 
-import io.gitlab.arturbosch.jpal.resolve.QualifiedType
+import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 
 import java.nio.file.Path
 

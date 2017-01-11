@@ -1,5 +1,6 @@
 package io.gitlab.arturbosch.jpal.dummies;
 
+import io.gitlab.arturbosch.jpal.dummies.resolving.LongChainResolving;
 import io.gitlab.arturbosch.jpal.dummies.resolving.SolveTypeDummy;
 
 /**
@@ -47,6 +48,12 @@ public class ResolvingDummy {
 		new ChainResolving().inner.call();
 		String result = new ChainResolving().chain().method(1);
 		SolveTypeDummy.instance().method(SolveTypeDummy.instanceField);
+	}
+
+	// how about very long chains?
+	public void m5() {
+		new LongChainResolving().firstChain.secondChain.thirdChain
+				.fourthChain.fifthChain.selfChain.selfChain.getAnInt();
 	}
 
 	class InnerResolvingDummy {

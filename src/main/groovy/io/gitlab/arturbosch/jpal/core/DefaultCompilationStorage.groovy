@@ -6,7 +6,7 @@ import groovy.util.logging.Log
 import io.gitlab.arturbosch.jpal.internal.SmartCache
 import io.gitlab.arturbosch.jpal.internal.StreamCloser
 import io.gitlab.arturbosch.jpal.internal.Validate
-import io.gitlab.arturbosch.jpal.resolve.QualifiedType
+import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 
 import java.nio.file.Files
 import java.nio.file.Path

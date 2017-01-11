@@ -6,8 +6,8 @@ import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.Validate
-import io.gitlab.arturbosch.jpal.resolve.QualifiedType
-import io.gitlab.arturbosch.jpal.resolve.ResolutionData
+import io.gitlab.arturbosch.jpal.resolution.QualifiedType
+import io.gitlab.arturbosch.jpal.resolution.ResolutionData
 
 import java.nio.file.Path
 

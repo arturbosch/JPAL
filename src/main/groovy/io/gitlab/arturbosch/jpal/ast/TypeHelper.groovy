@@ -10,10 +10,10 @@ import com.github.javaparser.ast.type.Type
 import com.github.javaparser.utils.Pair
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.internal.Validate
-import io.gitlab.arturbosch.jpal.nested.NoClassesException
-import io.gitlab.arturbosch.jpal.resolve.QualifiedType
-import io.gitlab.arturbosch.jpal.resolve.ResolutionData
-import io.gitlab.arturbosch.jpal.resolve.Resolver
+import io.gitlab.arturbosch.jpal.resolution.nested.NoClassesException
+import io.gitlab.arturbosch.jpal.resolution.QualifiedType
+import io.gitlab.arturbosch.jpal.resolution.ResolutionData
+import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
 
 import java.util.stream.Collectors
 
@@ -77,7 +77,7 @@ final class TypeHelper {
 	static QualifiedType getQualifiedType(ClassOrInterfaceDeclaration n, CompilationUnit unit) {
 		def name = n.nameAsString
 		def holder = ResolutionData.of(unit)
-		return new Resolver().getQualifiedType(holder, new ClassOrInterfaceType(name))
+		return new TypeSolver().getQualifiedType(holder, new ClassOrInterfaceType(name))
 	}
 
 	/**
@@ -168,7 +168,7 @@ final class TypeHelper {
 				.unique { a, b -> a.nameAsString != b.nameAsString ? 1 : 0 }
 				.stream()
 				.map { withOuterClasses(it) }
-				.map { new Resolver().getQualifiedType(resolutionData, it) }
+				.map { new TypeSolver().getQualifiedType(resolutionData, it) }
 				.collect(Collectors.toList())
 	}
 

@@ -1,7 +1,7 @@
 package io.gitlab.arturbosch.jpal.dummies;
 
-import io.gitlab.arturbosch.jpal.resolve.QualifiedType;
-import io.gitlab.arturbosch.jpal.resolve.ResolutionData;
+import io.gitlab.arturbosch.jpal.resolution.QualifiedType;
+import io.gitlab.arturbosch.jpal.resolution.ResolutionData;
 
 import java.util.ArrayList;
 import java.util.List;

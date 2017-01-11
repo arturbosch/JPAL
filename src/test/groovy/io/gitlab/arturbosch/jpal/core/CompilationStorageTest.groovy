@@ -1,7 +1,7 @@
 package io.gitlab.arturbosch.jpal.core
 
 import io.gitlab.arturbosch.jpal.Helper
-import io.gitlab.arturbosch.jpal.resolve.QualifiedType
+import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import spock.lang.Specification
 
 /**
