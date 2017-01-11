@@ -3,7 +3,6 @@ package io.gitlab.arturbosch.jpal.resolution.solvers
 import com.github.javaparser.ast.expr.SimpleName
 import io.gitlab.arturbosch.jpal.Helper
 import io.gitlab.arturbosch.jpal.core.JPAL
-import io.gitlab.arturbosch.jpal.resolution.solvers.SymbolSolver
 import io.gitlab.arturbosch.jpal.resolution.symbols.SymbolReference
 import spock.lang.Specification
 
