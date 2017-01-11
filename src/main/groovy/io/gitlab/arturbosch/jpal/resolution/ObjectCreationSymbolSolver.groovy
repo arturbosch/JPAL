@@ -15,7 +15,7 @@ import io.gitlab.arturbosch.jpal.resolve.symbols.SymbolReference
  * @author Artur Bosch
  */
 @CompileStatic
-class ObjectCreationSymbolSolver extends CallOrAccessAwareSolver implements Solver {
+final class ObjectCreationSymbolSolver extends CallOrAccessAwareSolver implements Solver {
 
 	private Resolver resolver
 

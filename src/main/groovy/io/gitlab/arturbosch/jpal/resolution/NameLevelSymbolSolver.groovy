@@ -16,7 +16,7 @@ import io.gitlab.arturbosch.jpal.resolve.symbols.TypeSymbolReference
  * @author Artur Bosch
  */
 @CompileStatic
-class NameLevelSymbolSolver implements Solver {
+final class NameLevelSymbolSolver implements Solver {
 
 	private Resolver resolver
 	private CompilationStorage storage

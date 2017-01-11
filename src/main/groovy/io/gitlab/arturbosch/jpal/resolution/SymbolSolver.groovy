@@ -28,7 +28,7 @@ final class SymbolSolver implements Solver {
 		this.classLevelSolver = new LocalClassLevelSymbolSolver(resolver)
 		this.declarationSolver = new DeclarationLevelSymbolSolver(resolver)
 		this.nameLevelSolver = new NameLevelSymbolSolver(storage, resolver, variableSolver)
-		this.globalSolver = new GlobalClassLevelSymbolSolver(resolver, storage, nameLevelSolver, classLevelSolver)
+		this.globalSolver = new GlobalClassLevelSymbolSolver(storage, resolver, nameLevelSolver, classLevelSolver)
 	}
 
 	@Override
@@ -37,6 +37,7 @@ final class SymbolSolver implements Solver {
 		def symbolReference = declarationSolver.resolve(symbol, info)
 		if (symbolReference.isPresent()) return symbolReference
 
+		// Is it a static access?
 		symbolReference = nameLevelSolver.resolve(symbol, info)
 		if (symbolReference.isPresent()) return symbolReference
 

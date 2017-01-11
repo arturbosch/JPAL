@@ -29,7 +29,7 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 	private ObjectCreationSymbolSolver objectCreationSolver
 	private NameLevelSymbolSolver nameLevelSolver
 
-	GlobalClassLevelSymbolSolver(Resolver resolver, CompilationStorage storage,
+	GlobalClassLevelSymbolSolver(CompilationStorage storage, Resolver resolver,
 								 NameLevelSymbolSolver nameLevelSolver,
 								 LocalClassLevelSymbolSolver classLevelSolver) {
 		this.storage = storage

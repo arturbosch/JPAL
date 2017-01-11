@@ -18,6 +18,4 @@ class FieldSymbolReference extends VariableSymbolReference {
 		super(symbol, qualifiedType)
 		field = declaration
 	}
-
-
 }

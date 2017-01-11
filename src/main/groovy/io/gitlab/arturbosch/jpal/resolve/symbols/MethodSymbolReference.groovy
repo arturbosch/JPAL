@@ -18,5 +18,4 @@ class MethodSymbolReference extends SymbolReference {
 		super(symbol, qualifiedType)
 		this.declaration = declaration
 	}
-
 }
