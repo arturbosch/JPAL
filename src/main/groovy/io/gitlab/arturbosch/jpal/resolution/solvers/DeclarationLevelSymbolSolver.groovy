@@ -63,7 +63,7 @@ final class DeclarationLevelSymbolSolver implements Solver {
 		return Optional.empty()
 	}
 
-	private void createNodeWithTypeReference(SimpleName symbol, NodeWithType withType, CompilationInfo info) {
+	private SymbolReference createNodeWithTypeReference(SimpleName symbol, NodeWithType withType, CompilationInfo info) {
 		def qualifiedType = resolver.getQualifiedType(info.data, withType.type)
 		if (withType instanceof MethodDeclaration) {
 			new MethodSymbolReference(symbol, qualifiedType, withType as MethodDeclaration)
