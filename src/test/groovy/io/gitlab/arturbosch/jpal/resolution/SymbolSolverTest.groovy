@@ -67,15 +67,17 @@ class SymbolSolverTest extends Specification {
 		def solver = new SymbolSolver(storage)
 		def info = storage.getCompilationInfo(Helper.RESOLVING_DUMMY).get()
 		def symbols = Helper.nth(info.unit, 3).body.get().getNodesByType(SimpleName.class)
-		symbols.each { println it }
 
 		when: "resolving all symbols"
-		def symbolReferences = symbols.collect { solver.resolve(it, info) }
-		symbolReferences.each { println it }
+		def symbolReferences = symbols.collect { solver.resolve(it, info).get() }
+		symbolReferences.each {println it}
 
 		then: "this.x must be a field, all others local"
-		symbolReferences.find { it.isPresent() }
-//		symbolReferences.stream().filter { it.isMethod() }.collect().size() == 3
+		symbolReferences.stream().filter { it.isMethod() }.collect().size() == 5
+		symbolReferences.stream().filter { it.isVariable() }.map { it.asVariable() }
+				.filter { it.isField() }.collect().size() == 2
+		symbolReferences.stream().filter { it.isVariable() }.map { it.asVariable() }
+				.filter { it.isLocaleVariable() }.collect().size() == 1
 	}
 
 }

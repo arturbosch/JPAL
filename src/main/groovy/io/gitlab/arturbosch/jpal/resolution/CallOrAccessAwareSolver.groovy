@@ -4,12 +4,14 @@ import com.github.javaparser.ast.expr.FieldAccessExpr
 import com.github.javaparser.ast.expr.MethodCallExpr
 import com.github.javaparser.ast.expr.SimpleName
 import com.github.javaparser.ast.expr.ThisExpr
+import groovy.transform.CompileStatic
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.FirstParam
 
 /**
  * @author Artur Bosch
  */
+@CompileStatic
 abstract class CallOrAccessAwareSolver {
 
 	protected static <T, U> Optional<U> withNotNull(T object, @ClosureParams(FirstParam.class) Closure<Optional<U>> block) {

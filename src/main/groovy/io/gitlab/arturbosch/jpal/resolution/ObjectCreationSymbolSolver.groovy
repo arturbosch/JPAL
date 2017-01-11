@@ -8,7 +8,7 @@ import com.github.javaparser.ast.expr.SimpleName
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.core.CompilationInfo
 import io.gitlab.arturbosch.jpal.resolve.Resolver
-import io.gitlab.arturbosch.jpal.resolve.symbols.ObjectCreationSymbolReference
+import io.gitlab.arturbosch.jpal.resolve.symbols.SimpleSymbolReference
 import io.gitlab.arturbosch.jpal.resolve.symbols.SymbolReference
 
 /**
@@ -32,22 +32,22 @@ class ObjectCreationSymbolSolver extends CallOrAccessAwareSolver implements Solv
 		return Optional.empty()
 	}
 
-	Optional<ObjectCreationSymbolReference> resolveInFieldAccess(SimpleName symbol, FieldAccessExpr fieldAccessExpr,
+	Optional<SimpleSymbolReference> resolveInFieldAccess(SimpleName symbol, FieldAccessExpr fieldAccessExpr,
 																 CompilationInfo info) {
 		resolveInScope(symbol, fieldAccessExpr.scope, info)
 	}
 
-	private Optional<ObjectCreationSymbolReference> resolveInScope(SimpleName symbol,
+	private Optional<SimpleSymbolReference> resolveInScope(SimpleName symbol,
 																   Optional<Expression> scope,
 																   CompilationInfo info) {
 		scope.filter { it instanceof ObjectCreationExpr }
 				.map { it as ObjectCreationExpr }
 				.map {
-			new ObjectCreationSymbolReference(symbol, resolver.getQualifiedType(info.data, it.type), it)
+			new SimpleSymbolReference(symbol, resolver.getQualifiedType(info.data, it.type))
 		}
 	}
 
-	Optional<ObjectCreationSymbolReference> resolveInMethodCall(SimpleName symbol, MethodCallExpr methodCallExpr,
+	Optional<SimpleSymbolReference> resolveInMethodCall(SimpleName symbol, MethodCallExpr methodCallExpr,
 																CompilationInfo info) {
 		resolveInScope(symbol, methodCallExpr.scope, info)
 	}

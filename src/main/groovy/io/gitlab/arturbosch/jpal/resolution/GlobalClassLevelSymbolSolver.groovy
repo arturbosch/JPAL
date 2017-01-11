@@ -1,9 +1,12 @@
 package io.gitlab.arturbosch.jpal.resolution
 
 import com.github.javaparser.ast.Node
+import com.github.javaparser.ast.expr.Expression
 import com.github.javaparser.ast.expr.FieldAccessExpr
 import com.github.javaparser.ast.expr.MethodCallExpr
 import com.github.javaparser.ast.expr.SimpleName
+import com.github.javaparser.ast.nodeTypes.NodeWithOptionalScope
+import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.core.CompilationInfo
 import io.gitlab.arturbosch.jpal.core.CompilationStorage
@@ -75,9 +78,12 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 			return resolveFieldInTypeScope(objReference.qualifiedType, symbol)
 		}
 
-		println "hello $maybeFieldAccess.parentNode"
-		// TODO loop through field/method accesses
-		println "$symbol: TODO loop through field/method accesses"
+		// loop through field/method accesses
+		symbolReference = asMethodOrFieldChain(maybeFieldAccess.scope, info)
+		if (symbolReference) {
+			return resolveFieldInTypeScope(symbolReference.qualifiedType, symbol)
+		}
+
 		return Optional.empty()
 	}
 
@@ -96,13 +102,22 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 			return resolveMethodInTypeScope(symbolReference.qualifiedType, symbol, maybeCallExpr)
 		}
 
-		println "hello ${maybeCallExpr.scope.get()}"
-		println "hello ${maybeCallExpr.scope.get().class}"
-		println "hello ${maybeCallExpr.scope.get().parentNode.get()}"
-		println "hello ${maybeCallExpr.scope.get().parentNode.get().class}"
-		// TODO loop through field/method accesses
-		println "$symbol: TODO loop through field/method accesses"
+		// loop through field/method accesses
+		symbolReference = asMethodOrFieldChain(maybeCallExpr.scope, info)
+		if (symbolReference) {
+			return resolveMethodInTypeScope(symbolReference.qualifiedType, symbol, maybeCallExpr)
+		}
+
 		return Optional.empty()
+	}
+
+	private SymbolReference asMethodOrFieldChain(Optional<Expression> scope, CompilationInfo info) {
+		scope// Needs #696 (NodeWithOptionalScope) and #702 (NodeWithSimpleName for FieldAccess) - see ticket #21!
+				.filter { it instanceof NodeWithOptionalScope }
+				.filter { it instanceof NodeWithSimpleName }
+				.map { it as NodeWithSimpleName }
+				.map { resolve(it.name, info).orElse(null) }
+				.orElse(null)
 	}
 
 	private Optional resolveFieldInTypeScope(QualifiedType qualifiedType, SimpleName symbol) {
