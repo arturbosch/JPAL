@@ -14,7 +14,8 @@ import io.gitlab.arturbosch.jpal.internal.Validate
 @ToString(includeNames = false, includePackage = false, excludes = ["shortName", "onlyPackageName"])
 @EqualsAndHashCode(excludes = ["shortName", "onlyPackageName"])
 @CompileStatic
-@SuppressWarnings("UnnecessaryQualifiedReference") // Groovy Compiler Bug?
+@SuppressWarnings("UnnecessaryQualifiedReference")
+// Groovy Compiler Bug?
 class QualifiedType {
 
 	static QualifiedType UNKNOWN = new QualifiedType("UNKNOWN", QualifiedType.TypeToken.UNKNOWN)
@@ -71,6 +72,13 @@ class QualifiedType {
 	 */
 	boolean isReference() {
 		return typeToken == TypeToken.REFERENCE
+	}
+
+	/**
+	 * @return true if unknown type, use this as if the qualified type is absent
+	 */
+	boolean isUnknown() {
+		return typeToken == TypeToken.UNKNOWN
 	}
 
 	/**

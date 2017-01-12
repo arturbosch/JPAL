@@ -1,13 +1,19 @@
 package io.gitlab.arturbosch.jpal.resolution.solvers
 
 import com.github.javaparser.ast.Node
+import com.github.javaparser.ast.NodeList
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
+import com.github.javaparser.ast.body.TypeDeclaration
 import com.github.javaparser.ast.expr.Expression
 import com.github.javaparser.ast.expr.FieldAccessExpr
 import com.github.javaparser.ast.expr.MethodCallExpr
 import com.github.javaparser.ast.expr.SimpleName
 import com.github.javaparser.ast.nodeTypes.NodeWithOptionalScope
 import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName
+import com.github.javaparser.ast.type.ClassOrInterfaceType
 import groovy.transform.CompileStatic
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.FirstParam
 import io.gitlab.arturbosch.jpal.core.CompilationInfo
 import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
@@ -120,14 +126,63 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 	}
 
 	private Optional resolveFieldInTypeScope(QualifiedType qualifiedType, SimpleName symbol) {
-		def otherInfo = storage.getCompilationInfo(qualifiedType).orElse(null)
-		return otherInfo ? classLevelSolver.resolveFieldSymbol(symbol, qualifiedType, otherInfo) : Optional.empty()
+		return storage.getCompilationInfo(qualifiedType).map { CompilationInfo otherInfo ->
+			classLevelSolver.resolveFieldSymbol(symbol, qualifiedType, otherInfo).orElseGet {
+				def typeDeclaration = otherInfo.innerClasses[qualifiedType] ?: otherInfo.mainType
+				with(typeDeclaration) {
+					def declaration = typeDeclaration as ClassOrInterfaceDeclaration
+					resolveInheritance(declaration.extendedTypes, otherInfo, symbol) ?:
+							resolveInheritance(declaration.implementedTypes, otherInfo, symbol)
+				}
+			}
+		}
+	}
+
+	private static <T> T with(TypeDeclaration object, @ClosureParams(FirstParam.class) Closure<T> block) {
+		if (object && object instanceof ClassOrInterfaceDeclaration) {
+			return block.call(object)
+		} else null
 	}
 
 	private Optional resolveMethodInTypeScope(QualifiedType qualifiedType, SimpleName symbol, MethodCallExpr maybeCallExpr) {
-		def otherInfo = storage.getCompilationInfo(qualifiedType).orElse(null)
-		// search scope is important if it is in a inner class, call expr for args<->params type comparison
-		return otherInfo ? classLevelSolver.resolveMethodSymbol(symbol, maybeCallExpr, qualifiedType, otherInfo) : Optional.empty()
+		return storage.getCompilationInfo(qualifiedType).map { CompilationInfo otherInfo ->
+			classLevelSolver.resolveMethodSymbol(symbol, maybeCallExpr, qualifiedType, otherInfo).orElseGet {
+				def typeDeclaration = otherInfo.innerClasses[qualifiedType] ?: otherInfo.mainType
+				with(typeDeclaration) {
+					def declaration = typeDeclaration as ClassOrInterfaceDeclaration
+					resolveInheritance(declaration.extendedTypes, otherInfo, symbol, maybeCallExpr) ?:
+							resolveInheritance(declaration.implementedTypes, otherInfo, symbol, maybeCallExpr)
+				}
+			}
+		}
+	}
+
+	private FieldSymbolReference resolveInheritance(NodeList<ClassOrInterfaceType> extendedTypes,
+													CompilationInfo info, SimpleName symbol) {
+		return resolveInheritance(info, extendedTypes) { QualifiedType type, CompilationInfo otherInfo ->
+			classLevelSolver.resolveFieldSymbol(symbol, type, otherInfo).orElse(null)
+		} as FieldSymbolReference
+	}
+
+	private Object resolveInheritance(CompilationInfo info,
+									  NodeList<ClassOrInterfaceType> extendsTypes,
+									  Closure scope) {
+		return extendsTypes.stream()
+				.map { resolver.getQualifiedType(info.data, it) }
+				.filter { !it.isUnknown() }
+				.map { QualifiedType parentType ->
+			storage.getCompilationInfo(parentType).map {
+				scope.call(parentType, it)
+			}.orElse(null)
+		}.filter { it != null }.findFirst().orElse(null)
+	}
+
+	private MethodSymbolReference resolveInheritance(NodeList<ClassOrInterfaceType> extendedTypes,
+													 CompilationInfo info, SimpleName symbol,
+													 MethodCallExpr maybeCallExpr) {
+		return resolveInheritance(info, extendedTypes) { QualifiedType type, CompilationInfo otherInfo ->
+			classLevelSolver.resolveMethodSymbol(symbol, maybeCallExpr, type, otherInfo).orElse(null)
+		} as MethodSymbolReference
 	}
 
 }

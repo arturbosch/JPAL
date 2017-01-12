@@ -13,11 +13,12 @@ import java.util.stream.Collectors
  */
 class SymbolSolverTest extends Specification {
 
+	def storage = JPAL.new(Helper.BASE_PATH)
+	def solver = new SymbolSolver(storage)
+	def info = storage.getCompilationInfo(Helper.RESOLVING_DUMMY).get()
+
 	def "ResolutionDummy - method 1 - all variables"() {
 		given: "compilation info for a class"
-		def storage = JPAL.new(Helper.BASE_PATH)
-		def solver = new SymbolSolver(storage)
-		def info = storage.getCompilationInfo(Helper.RESOLVING_DUMMY).get()
 		def symbols = Helper.nth(info.unit, 0).body.get().getNodesByType(SimpleName.class)
 
 		when: "resolving all symbols"
@@ -30,9 +31,6 @@ class SymbolSolverTest extends Specification {
 
 	def "ResolutionDummy - method 2 - all variables same name with this"() {
 		given: "compilation info for a class"
-		def storage = JPAL.new(Helper.BASE_PATH)
-		def solver = new SymbolSolver(storage)
-		def info = storage.getCompilationInfo(Helper.RESOLVING_DUMMY).get()
 		def symbols = Helper.nth(info.unit, 1).body.get().getNodesByType(SimpleName.class)
 
 		when: "resolving all symbols"
@@ -45,9 +43,6 @@ class SymbolSolverTest extends Specification {
 
 	def "ResolutionDummy - method 3 - method calls and field accesses, no chains"() {
 		given: "compilation info for a class"
-		def storage = JPAL.new(Helper.BASE_PATH)
-		def solver = new SymbolSolver(storage)
-		def info = storage.getCompilationInfo(Helper.RESOLVING_DUMMY).get()
 		def symbols = Helper.nth(info.unit, 2).body.get().getNodesByType(SimpleName.class)
 
 		when: "resolving all symbols"
@@ -65,9 +60,6 @@ class SymbolSolverTest extends Specification {
 
 	def "ResolutionDummy - method 4 - method/field chaining"() {
 		given: "compilation info for a class"
-		def storage = JPAL.new(Helper.BASE_PATH)
-		def solver = new SymbolSolver(storage)
-		def info = storage.getCompilationInfo(Helper.RESOLVING_DUMMY).get()
 		def symbols = Helper.nth(info.unit, 3).body.get().getNodesByType(SimpleName.class)
 
 		when: "resolving all symbols"
@@ -83,9 +75,6 @@ class SymbolSolverTest extends Specification {
 
 	def "ResolutionDummy - method 5 - very long chains"() {
 		given: "compilation info for a class"
-		def storage = JPAL.new(Helper.BASE_PATH)
-		def solver = new SymbolSolver(storage)
-		def info = storage.getCompilationInfo(Helper.RESOLVING_DUMMY).get()
 		def symbols = Helper.nth(info.unit, 4).body.get().getNodesByType(SimpleName.class)
 
 		when: "resolving all symbols"
@@ -96,6 +85,18 @@ class SymbolSolverTest extends Specification {
 		List<SymbolReference> list = symbolReferences.stream().filter { it.isMethod() }.collect(Collectors.toList())
 		list.size() == 1
 		list[0].symbol.identifier == "getAnInt"
+	}
+
+	def "ResolutionDummy - method 6 - simple inheritance"() {
+		given: "compilation info for a class with inheritance"
+		def symbols = Helper.nth(info.unit, 5).body.get().getNodesByType(SimpleName.class)
+
+		when: "resolving all symbols"
+		def symbolReferences = symbols.collect { solver.resolve(it, info).get() }
+
+		then: "parent class and interface methods/fields must be found"
+		symbolReferences.stream().filter { it.isMethod() }.count() == 5L
+		symbolReferences.stream().filter { it.isVariable() }.count() == 1L
 	}
 
 }

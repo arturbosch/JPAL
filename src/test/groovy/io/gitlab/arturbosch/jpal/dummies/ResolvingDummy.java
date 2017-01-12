@@ -2,6 +2,7 @@ package io.gitlab.arturbosch.jpal.dummies;
 
 import io.gitlab.arturbosch.jpal.dummies.resolving.LongChainResolving;
 import io.gitlab.arturbosch.jpal.dummies.resolving.SolveTypeDummy;
+import io.gitlab.arturbosch.jpal.dummies.resolving.SubSolveTypeDummy;
 
 /**
  * @author Artur Bosch
@@ -54,6 +55,13 @@ public class ResolvingDummy {
 	public void m5() {
 		new LongChainResolving().firstChain.secondChain.thirdChain
 				.fourthChain.fifthChain.selfChain.selfChain.getAnInt();
+	}
+
+	// Simple Inheritence
+	public void m6() {
+		new SubSolveTypeDummy().stuff();
+		new SubSolveTypeDummy().method(new SubSolveTypeDummy().MAGIC_NUMBER);
+		new SubSolveTypeDummy().instance().instance().method(5);
 	}
 
 	class InnerResolvingDummy {
