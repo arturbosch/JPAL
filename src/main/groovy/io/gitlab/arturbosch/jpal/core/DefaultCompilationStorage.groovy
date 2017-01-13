@@ -52,6 +52,14 @@ class DefaultCompilationStorage implements CompilationStorage {
 	protected final SmartCache<Path, CompilationInfo> pathCache = new SmartCache<>()
 
 	@PackageScope
+	DefaultCompilationStorage(Path path, CompilationInfoProcessor processor, boolean debug) {
+		println "CompilationStorage without createInternal()"
+		Validate.notNull(path)
+		this.root = path
+		this.parser = new JavaCompilationParser(processor)
+	}
+
+	@PackageScope
 	DefaultCompilationStorage(Path path, CompilationInfoProcessor processor) {
 		Validate.notNull(path)
 		this.root = path
@@ -104,8 +112,8 @@ class DefaultCompilationStorage implements CompilationStorage {
 				.filter { !it.toString().endsWith("package-info.java") } as Stream<Path>
 	}
 
-	protected void createCompilationInfo(Path path) {
-		def compile = parser.compile(path)
+	protected void createCompilationInfo(Path path, String code = null) {
+		def compile = code ? parser.compileFromCode(path, code) : parser.compile(path)
 		compile.ifPresent {
 			typeCache.put(it.qualifiedType, it)
 			pathCache.put(path, it)

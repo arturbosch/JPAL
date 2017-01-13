@@ -18,6 +18,7 @@ import java.util.logging.Level
 @CompileStatic
 @Log
 @PackageScope
+@SuppressWarnings("GroovyMissingReturnStatement")
 class JavaCompilationParser {
 
 	private CompilationInfoProcessor processor
@@ -27,18 +28,30 @@ class JavaCompilationParser {
 		this.processor = processor
 	}
 
-	@SuppressWarnings("GroovyMissingReturnStatement")
 	Optional<CompilationInfo> compile(Path path) {
 		def result = null
 		IOGroovyMethods.withCloseable(Files.newInputStream(path)) {
 			try {
 				def unit = JavaParser.parse(it)
-				if (unit.types.isEmpty()) return
+				if (unit.types.isEmpty()) return Optional.empty()
 				result = processor ? CompilationInfo.of(unit, path, processor) :
 						CompilationInfo.of(unit, path)
 			} catch (ParseException | TokenMgrException error) {
 				log.log(Level.SEVERE, "Error while compiling $path occurred", error)
 			}
+		}
+		return Optional.ofNullable(result) as Optional<CompilationInfo>
+	}
+
+	Optional<CompilationInfo> compileFromCode(Path path, String code) {
+		def result = null
+		try {
+			def unit = JavaParser.parse(code)
+			if (unit.types.isEmpty()) return Optional.empty()
+			result = processor ? CompilationInfo.of(unit, path, processor) :
+					CompilationInfo.of(unit, path)
+		} catch (ParseException | TokenMgrException error) {
+			log.log(Level.SEVERE, "Error while compiling $path occurred", error)
 		}
 		return Optional.ofNullable(result) as Optional<CompilationInfo>
 	}

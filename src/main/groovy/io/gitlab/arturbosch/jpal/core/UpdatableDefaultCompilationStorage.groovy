@@ -1,5 +1,6 @@
 package io.gitlab.arturbosch.jpal.core
 
+import com.github.javaparser.utils.Pair
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import io.gitlab.arturbosch.jpal.internal.Validate
@@ -19,10 +20,14 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 		super(path, processor)
 	}
 
-	Optional<CompilationInfo> updateRelocatedCompilationInfo(Path oldPath, Path newPath) {
+	@PackageScope
+	UpdatableDefaultCompilationStorage(Path path, CompilationInfoProcessor processor, boolean debug) {
+		super(path, processor, debug)
+	}
+
+	Optional<CompilationInfo> relocateCompilationInfo(Path oldPath, Path newPath) {
 		Validate.notNull(oldPath)
 		Validate.notNull(newPath)
-		Validate.isTrue(Files.exists(newPath), "Relocated path does not exist!")
 
 		getCompilationInfo(oldPath).ifPresent {
 			pathCache.remove(oldPath)
@@ -32,7 +37,7 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 		return getCompilationInfo(newPath)
 	}
 
-	List<CompilationInfo> updateCompilationInfoWithSamePaths(List<Path> paths) {
+	List<CompilationInfo> updateCompilationInfo(List<Path> paths) {
 		List<CompilationInfo> cus = paths.stream().map {
 			Validate.notNull(it)
 			createCompilationInfo(it)
@@ -42,4 +47,39 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 				.collect(Collectors.toList())
 		return Collections.unmodifiableList(cus)
 	}
+
+	void removeCompilationInfo(List<Path> paths) {
+		paths.each { path ->
+			getCompilationInfo(path).ifPresent {
+				pathCache.remove(path)
+				typeCache.remove(it.qualifiedType)
+			}
+		}
+	}
+
+	@Override
+	Optional<CompilationInfo> relocateCompilationInfo(Path oldPath, Pair<Path, String> newContent) {
+		Validate.notNull(oldPath)
+		Validate.notNull(newContent)
+
+		getCompilationInfo(oldPath).ifPresent {
+			pathCache.remove(oldPath)
+			typeCache.remove(it.qualifiedType)
+		}
+		createCompilationInfo(newContent.a, newContent.b)
+		return getCompilationInfo(newContent.a)
+	}
+
+	@Override
+	List<CompilationInfo> updateCompilationInfo(Map<Path, String> pathWithContent) {
+		Validate.notNull(pathWithContent)
+		List<CompilationInfo> cus = pathWithContent.entrySet().stream().map {
+			createCompilationInfo(it.key, it.value)
+			getCompilationInfo(it.key)
+		}.filter { it.isPresent() }
+				.map { it.get() }
+				.collect(Collectors.toList())
+		return Collections.unmodifiableList(cus)
+	}
+
 }

@@ -40,6 +40,12 @@ final class JPAL {
 		} as UpdatableCompilationStorage
 	}
 
+	static <T> UpdatableCompilationStorage updatableFromSource(Path root, CompilationInfoProcessor<T> processor = null) {
+		return createInternal(root) {
+			new UpdatableDefaultCompilationStorage(root, processor, true)
+		} as UpdatableCompilationStorage
+	}
+
 	private static CompilationStorage createInternal(Path root, Closure<CompilationStorage> storageCreation) {
 		Validate.isTrue(root != null, "Project path must not be null!")
 		return storageCreation()
