@@ -3,12 +3,9 @@ package io.gitlab.arturbosch.jpal.core
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ParseException
 import com.github.javaparser.TokenMgrException
-import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.body.TypeDeclaration
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import groovy.util.logging.Log
-import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import org.codehaus.groovy.runtime.IOGroovyMethods
 
 import java.nio.file.Files
@@ -44,10 +41,6 @@ class JavaCompilationParser {
 			}
 		}
 		return Optional.ofNullable(result) as Optional<CompilationInfo>
-	}
-
-	private static TypeDeclaration getFirstDeclaredClass(CompilationUnit compilationUnit) {
-		return compilationUnit.getNodesByType(TypeDeclaration.class).first()
 	}
 
 }

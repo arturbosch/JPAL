@@ -18,6 +18,7 @@ interface CompilationStorage {
 	 * @return retrieves all stores compilation info's
 	 */
 	List<CompilationInfo> getAllCompilationInfo()
+
 	/**
 	 * Maybe a compilation unit for given path is found.
 	 *

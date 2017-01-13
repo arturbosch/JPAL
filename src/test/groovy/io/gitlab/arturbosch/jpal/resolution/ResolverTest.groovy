@@ -21,7 +21,7 @@ class ResolverTest extends Specification {
 		when: "resolving a type"
 		def type = resolver.resolveType(new ClassOrInterfaceType("SolveTypeDummy"), info)
 		then: "its the qualified type of dummy"
-		type.get().name == "io.gitlab.arturbosch.jpal.dummies.resolving.SolveTypeDummy"
+		type.name == "io.gitlab.arturbosch.jpal.dummies.resolving.SolveTypeDummy"
 	}
 
 	def "ResolveType"() {
