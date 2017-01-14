@@ -2,6 +2,7 @@ package io.gitlab.arturbosch.jpal.core
 
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ParseException
+import com.github.javaparser.ParseProblemException
 import com.github.javaparser.TokenMgrException
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
@@ -36,7 +37,7 @@ class JavaCompilationParser {
 				if (unit.types.isEmpty()) return Optional.empty()
 				result = processor ? CompilationInfo.of(unit, path, processor) :
 						CompilationInfo.of(unit, path)
-			} catch (ParseException | TokenMgrException error) {
+			} catch (ParseException | TokenMgrException | ParseProblemException error) {
 				log.log(Level.SEVERE, "Error while compiling $path occurred", error)
 			}
 		}
@@ -50,7 +51,7 @@ class JavaCompilationParser {
 			if (unit.types.isEmpty()) return Optional.empty()
 			result = processor ? CompilationInfo.of(unit, path, processor) :
 					CompilationInfo.of(unit, path)
-		} catch (ParseException | TokenMgrException error) {
+		} catch (ParseException | TokenMgrException | ParseProblemException error ) {
 			log.log(Level.SEVERE, "Error while compiling $path occurred", error)
 		}
 		return Optional.ofNullable(result) as Optional<CompilationInfo>
