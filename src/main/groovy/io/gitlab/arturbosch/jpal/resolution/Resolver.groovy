@@ -32,7 +32,7 @@ final class Resolver implements Solver {
 		def symbolReference = table.get(symbol)
 				.orElseGet {
 			def reference = symbolSolver.resolve(symbol, info).orElse(null)
-			if (symbol) {
+			if (reference) {
 				table.put(symbol, reference)
 			}
 			reference
