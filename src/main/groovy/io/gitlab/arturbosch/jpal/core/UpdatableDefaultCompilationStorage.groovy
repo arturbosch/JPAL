@@ -19,6 +19,7 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 		super(processor)
 	}
 
+	@Override
 	Optional<CompilationInfo> relocateCompilationInfo(Path oldPath, Path newPath) {
 		Validate.notNull(oldPath)
 		Validate.notNull(newPath)
@@ -31,6 +32,7 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 		return getCompilationInfo(newPath)
 	}
 
+	@Override
 	List<CompilationInfo> updateCompilationInfo(List<Path> paths) {
 		List<CompilationInfo> cus = paths.stream().map {
 			Validate.notNull(it)
@@ -42,6 +44,7 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 		return Collections.unmodifiableList(cus)
 	}
 
+	@Override
 	void removeCompilationInfo(List<Path> paths) {
 		paths.each { path ->
 			getCompilationInfo(path).ifPresent {
