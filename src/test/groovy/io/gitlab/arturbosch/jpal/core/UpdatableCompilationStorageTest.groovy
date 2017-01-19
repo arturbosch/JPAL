@@ -10,7 +10,7 @@ class UpdatableCompilationStorageTest extends Specification {
 
 	def "domain update tests"() {
 		given: "an updatable storage"
-		def storage = JPAL.updatable(Helper.BASE_PATH)
+		def storage = JPAL.initializedUpdatable(Helper.BASE_PATH)
 
 		when: "adding a new path to the compilation storage"
 		def pathToAdd = Helper.BASE_PATH.resolve("test/TestReference.java")

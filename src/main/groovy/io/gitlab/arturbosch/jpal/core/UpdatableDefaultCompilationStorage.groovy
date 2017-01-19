@@ -5,7 +5,6 @@ import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import io.gitlab.arturbosch.jpal.internal.Validate
 
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.stream.Collectors
 
@@ -16,13 +15,8 @@ import java.util.stream.Collectors
 class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage implements UpdatableCompilationStorage {
 
 	@PackageScope
-	UpdatableDefaultCompilationStorage(Path path, CompilationInfoProcessor processor) {
-		super(path, processor)
-	}
-
-	@PackageScope
-	UpdatableDefaultCompilationStorage(Path path, CompilationInfoProcessor processor, boolean debug) {
-		super(path, processor, debug)
+	UpdatableDefaultCompilationStorage(CompilationInfoProcessor processor) {
+		super(processor)
 	}
 
 	Optional<CompilationInfo> relocateCompilationInfo(Path oldPath, Path newPath) {

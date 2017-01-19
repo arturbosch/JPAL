@@ -46,47 +46,17 @@ import java.util.stream.Stream
 @CompileStatic
 class DefaultCompilationStorage implements CompilationStorage {
 
-	private final Path root
 	private final JavaCompilationParser parser
 	protected final SmartCache<QualifiedType, CompilationInfo> typeCache = new SmartCache<>()
 	protected final SmartCache<Path, CompilationInfo> pathCache = new SmartCache<>()
 
 	@PackageScope
-	DefaultCompilationStorage(Path path, CompilationInfoProcessor processor, boolean debug) {
-		println "CompilationStorage without createInternal()"
-		Validate.notNull(path)
-		this.root = path
+	DefaultCompilationStorage(CompilationInfoProcessor processor) {
 		this.parser = new JavaCompilationParser(processor)
 	}
 
 	@PackageScope
-	DefaultCompilationStorage(Path path, CompilationInfoProcessor processor) {
-		Validate.notNull(path)
-		this.root = path
-		this.parser = new JavaCompilationParser(processor)
-		createInternal()
-	}
-
-	Set<QualifiedType> getAllQualifiedTypes() {
-		return Collections.unmodifiableSet(typeCache.keys())
-	}
-
-	List<CompilationInfo> getAllCompilationInfo() {
-		return Collections.unmodifiableList(typeCache.values())
-	}
-
-	Optional<CompilationInfo> getCompilationInfo(Path path) {
-		Validate.notNull(path)
-		return pathCache.get(path)
-	}
-
-	Optional<CompilationInfo> getCompilationInfo(QualifiedType qualifiedType) {
-		Validate.notNull(qualifiedType)
-		def qualifiedOuterType = qualifiedType.asOuterClass()
-		return typeCache.get(qualifiedOuterType)
-	}
-
-	private void createInternal() {
+	CompilationStorage initialize(Path root) {
 
 		ForkJoinPool forkJoinPool = new ForkJoinPool(
 				Runtime.getRuntime().availableProcessors(),
@@ -94,7 +64,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 
 		List<CompletableFuture> futures = new ArrayList<>(1000)
 
-		Stream<Path> walker = getJavaFilteredFileStream()
+		Stream<Path> walker = getJavaFilteredFileStream(root)
 		walker.forEach { Path path ->
 			futures.add(CompletableFuture
 					.runAsync({ createCompilationInfo(path) }, forkJoinPool)
@@ -104,12 +74,35 @@ class DefaultCompilationStorage implements CompilationStorage {
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
 		forkJoinPool.shutdown()
 		StreamCloser.quietly(walker)
-
+		return this
 	}
 
-	private Stream<Path> getJavaFilteredFileStream() {
+	private static Stream<Path> getJavaFilteredFileStream(Path root) {
 		return Files.walk(root).parallel().filter { it.toString().endsWith(".java") }
 				.filter { !it.toString().endsWith("package-info.java") } as Stream<Path>
+	}
+
+	@Override
+	Set<QualifiedType> getAllQualifiedTypes() {
+		return Collections.unmodifiableSet(typeCache.keys())
+	}
+
+	@Override
+	List<CompilationInfo> getAllCompilationInfo() {
+		return Collections.unmodifiableList(typeCache.values())
+	}
+
+	@Override
+	Optional<CompilationInfo> getCompilationInfo(Path path) {
+		Validate.notNull(path)
+		return pathCache.get(path)
+	}
+
+	@Override
+	Optional<CompilationInfo> getCompilationInfo(QualifiedType qualifiedType) {
+		Validate.notNull(qualifiedType)
+		def qualifiedOuterType = qualifiedType.asOuterClass()
+		return typeCache.get(qualifiedOuterType)
 	}
 
 	protected void createCompilationInfo(Path path, String code = null) {
