@@ -14,8 +14,7 @@ import io.gitlab.arturbosch.jpal.resolution.symbols.SymbolReference
  */
 final class Resolver implements Solver {
 
-	final CompilationStorage storage
-
+	private final CompilationStorage storage
 	private final SymbolTable table
 	private final TypeSolver typeSolver
 	private final SymbolSolver symbolSolver
@@ -44,4 +43,7 @@ final class Resolver implements Solver {
 		return typeSolver.getQualifiedType(info.data, type)
 	}
 
+	CompilationStorage getStorage() {
+		return storage
+	}
 }
