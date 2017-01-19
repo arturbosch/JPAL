@@ -8,6 +8,7 @@ import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.Validate
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import io.gitlab.arturbosch.jpal.resolution.ResolutionData
+import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
 
 import java.nio.file.Path
 
@@ -24,25 +25,18 @@ class CompilationInfo implements Processable {
 	final QualifiedType qualifiedType
 	final CompilationUnit unit
 	final Path path
-	final List<QualifiedType> usedTypes
 	final TypeDeclaration mainType
 	final ResolutionData data
 	final Map<QualifiedType, TypeDeclaration> innerClasses
 
-	private CompilationInfo(QualifiedType qualifiedType,
-							TypeDeclaration mainType,
-							Map<QualifiedType, TypeDeclaration> innerClasses,
-							List<QualifiedType> usedTypes,
-							CompilationUnit unit,
-							Path path) {
+	/**
+	 * Are set after creation of all compilation units as after that point only
+	 * is resolution of star imports possible.
+	 */
+	private List<QualifiedType> usedTypes
 
-		this.innerClasses = innerClasses
-		this.mainType = mainType
-		this.qualifiedType = qualifiedType
-		this.unit = unit
-		this.path = path
-		this.usedTypes = usedTypes
-		this.data = ResolutionData.of(unit)
+	List<QualifiedType> getUsedTypes() {
+		return usedTypes
 	}
 
 	/**
@@ -57,36 +51,33 @@ class CompilationInfo implements Processable {
 	static CompilationInfo of(CompilationUnit unit, Path path) {
 		Validate.notNull(unit)
 		Validate.notNull(path)
-		def usedTypes = TypeHelper.findAllUsedTypes(unit)
 		def mainClassAndInnerClassesPair = TypeHelper.getQualifiedDeclarationsOfInnerClasses(unit)
 		QualifiedType qualifiedType = mainClassAndInnerClassesPair.a.a
 		TypeDeclaration mainType = mainClassAndInnerClassesPair.a.b
 		Map<QualifiedType, TypeDeclaration> innerTypes = mainClassAndInnerClassesPair.b
-		usedTypes = replaceQualifiedTypesOfInnerClasses(usedTypes, innerTypes.keySet())
-		return new CompilationInfo(qualifiedType, mainType, innerTypes, usedTypes, unit, path)
+		return new CompilationInfo(qualifiedType, mainType, innerTypes, unit, path)
 	}
 
-	/**
-	 * Same as above with the difference that CompilationInfoProcessor's can be invoked
-	 * on the created CompilationInfo.
-	 */
-	static CompilationInfo of(CompilationUnit unit, Path path,
-							  CompilationInfoProcessor processor) {
-		def info = of(unit, path)
-		info.runProcessor(processor)
-		return info
+	private CompilationInfo(QualifiedType qualifiedType,
+							TypeDeclaration mainType,
+							Map<QualifiedType, TypeDeclaration> innerClasses,
+							CompilationUnit unit,
+							Path path) {
+
+		this.innerClasses = innerClasses
+		this.mainType = mainType
+		this.qualifiedType = qualifiedType
+		this.unit = unit
+		this.path = path
+		this.usedTypes = Collections.emptyList()
+		this.data = ResolutionData.of(unit)
 	}
 
-	/**
-	 * Tests if the given qualified type is referenced by this compilation unit.
-	 *
-	 * @param type given qualified type
-	 * @return true if given type is used within this instance
-	 */
-	boolean isWithinScope(QualifiedType type) {
-		Validate.notNull(type)
-		Validate.isTrue(type.name.contains("."), "Is not a qualified type!")
-		return usedTypes.contains(type)
+	@PackageScope
+	void findUsedTypes(TypeSolver typeSolver) {
+		Validate.notNull(usedTypes)
+		def usedTypes = TypeHelper.findAllUsedTypes(unit, typeSolver)
+		this.usedTypes = replaceQualifiedTypesOfInnerClasses(usedTypes, innerClasses.keySet())
 	}
 
 	private static List<QualifiedType> replaceQualifiedTypesOfInnerClasses(List<QualifiedType> types,
@@ -99,6 +90,18 @@ class CompilationInfo implements Processable {
 
 	private static boolean sameNameAndPackage(QualifiedType first, QualifiedType second) {
 		first.shortName == second.shortName && first.onlyPackageName == second.onlyPackageName
+	}
+
+	/**
+	 * Tests if the given qualified type is referenced by this compilation unit.
+	 *
+	 * @param type given qualified type
+	 * @return true if given type is used within this instance
+	 */
+	boolean isWithinScope(QualifiedType type) {
+		Validate.notNull(type)
+		Validate.isTrue(type.name.contains("."), "Is not a qualified type!")
+		return usedTypes.contains(type)
 	}
 
 	@Override

@@ -6,6 +6,7 @@ import groovy.transform.PackageScope
 import io.gitlab.arturbosch.jpal.internal.Validate
 
 import java.nio.file.Path
+import java.util.concurrent.CompletableFuture
 import java.util.stream.Collectors
 
 /**
@@ -20,28 +21,31 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 	}
 
 	@Override
-	Optional<CompilationInfo> relocateCompilationInfo(Path oldPath, Path newPath) {
-		Validate.notNull(oldPath)
-		Validate.notNull(newPath)
+	List<CompilationInfo> relocateCompilationInfo(Map<Path, Path> relocates) {
+		Validate.notNull(relocates)
 
-		getCompilationInfo(oldPath).ifPresent {
-			pathCache.remove(oldPath)
-			typeCache.remove(it.qualifiedType)
+		def futures = relocates.collect { oldPath, newPath ->
+			CompletableFuture.supplyAsync({
+				getCompilationInfo(oldPath).ifPresent {
+					pathCache.remove(oldPath)
+					typeCache.remove(it.qualifiedType)
+				}
+				createCompilationInfo(newPath)
+			}, forkJoinPool)
 		}
-		createCompilationInfo(newPath)
-		return getCompilationInfo(newPath)
+
+		return awaitAll(futures)
 	}
 
 	@Override
 	List<CompilationInfo> updateCompilationInfo(List<Path> paths) {
-		List<CompilationInfo> cus = paths.stream().map {
-			Validate.notNull(it)
-			createCompilationInfo(it)
-			getCompilationInfo(it)
-		}.filter { it.isPresent() }
-				.map { it.get() }
-				.collect(Collectors.toList())
-		return Collections.unmodifiableList(cus)
+		def futures = paths.collect { path ->
+			CompletableFuture.supplyAsync({
+				Validate.notNull(path)
+				createCompilationInfo(path)
+			}, forkJoinPool)
+		}
+		return awaitAll(futures)
 	}
 
 	@Override
@@ -55,28 +59,45 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 	}
 
 	@Override
-	Optional<CompilationInfo> relocateCompilationInfo(Path oldPath, Pair<Path, String> newContent) {
-		Validate.notNull(oldPath)
-		Validate.notNull(newContent)
+	List<CompilationInfo> relocateCompilationInfoFromSource(Map<Path, Pair<Path, String>> relocates) {
+		Validate.notNull(relocates)
 
-		getCompilationInfo(oldPath).ifPresent {
-			pathCache.remove(oldPath)
-			typeCache.remove(it.qualifiedType)
+		def futures = relocates.collect { oldPath, newContent ->
+			CompletableFuture.supplyAsync({
+				getCompilationInfo(oldPath).ifPresent {
+					pathCache.remove(oldPath)
+					typeCache.remove(it.qualifiedType)
+				}
+				createCompilationInfo(newContent.a, newContent.b)
+			}, forkJoinPool)
 		}
-		createCompilationInfo(newContent.a, newContent.b)
-		return getCompilationInfo(newContent.a)
+
+		return awaitAll(futures)
 	}
 
 	@Override
 	List<CompilationInfo> updateCompilationInfo(Map<Path, String> pathWithContent) {
 		Validate.notNull(pathWithContent)
-		List<CompilationInfo> cus = pathWithContent.entrySet().stream().map {
-			createCompilationInfo(it.key, it.value)
-			getCompilationInfo(it.key)
-		}.filter { it.isPresent() }
+
+		def futures = pathWithContent.collect { path, content ->
+			CompletableFuture.supplyAsync({
+				createCompilationInfo(path, content)
+			}, forkJoinPool)
+		}
+		return awaitAll(futures)
+	}
+
+	private List<CompilationInfo> awaitAll(List<CompletableFuture<CompilationInfo>> futures) {
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
+		def arrayOfFutures = futures.collect {
+			it.thenApplyAsync({ findTypesAndRunProcessor(it) }, forkJoinPool)
+		}.toArray(new CompletableFuture<?>[0])
+		CompletableFuture.allOf(arrayOfFutures).join()
+		List<CompilationInfo> result = futures.stream()
 				.map { it.get() }
+				.filter { it != null }
 				.collect(Collectors.toList())
-		return Collections.unmodifiableList(cus)
+		return Collections.unmodifiableList(result)
 	}
 
 }

@@ -13,11 +13,10 @@ interface UpdatableCompilationStorage extends CompilationStorage {
 	 * Allows to update an existing compilation info for which the underlying path was relocated.
 	 * This method will delete the old compilation info from both caches and compile a new one.
 	 *
-	 * @param oldPath old file path
-	 * @param newPath new file path
+	 * @param relocates map of path pairs to relocate
 	 * @return maybe the new relocated info if no compilation errors occur
 	 */
-	Optional<CompilationInfo> relocateCompilationInfo(Path oldPath, Path newPath)
+	List<CompilationInfo> relocateCompilationInfo(Map<Path, Path> relocates)
 
 	/**
 	 * Updates all given paths by recompiling the underlying compilation units.
@@ -38,11 +37,10 @@ interface UpdatableCompilationStorage extends CompilationStorage {
 	 * Allows to update an existing compilation info for which the underlying path was relocated.
 	 * This method will delete the old compilation info from both caches and compile a new one.
 	 *
-	 * @param oldPath old file path
-	 * @param newPath new file path
+	 * @param relocates map of path pairs (with relocated source code) to relocate
 	 * @return maybe the new relocated info if no compilation errors occur
 	 */
-	Optional<CompilationInfo> relocateCompilationInfo(Path oldPath, Pair<Path, String> newContent)
+	List<CompilationInfo> relocateCompilationInfoFromSource(Map<Path, Pair<Path, String>> relocates)
 
 	/**
 	 * Updates all given paths by recompiling the underlying compilation units.

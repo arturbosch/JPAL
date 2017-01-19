@@ -7,6 +7,7 @@ import io.gitlab.arturbosch.jpal.internal.SmartCache
 import io.gitlab.arturbosch.jpal.internal.StreamCloser
 import io.gitlab.arturbosch.jpal.internal.Validate
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
+import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -46,33 +47,47 @@ import java.util.stream.Stream
 @CompileStatic
 class DefaultCompilationStorage implements CompilationStorage {
 
-	private final JavaCompilationParser parser
+	protected final ForkJoinPool forkJoinPool = new ForkJoinPool(
+			Runtime.getRuntime().availableProcessors(),
+			ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true)
+
 	protected final SmartCache<QualifiedType, CompilationInfo> typeCache = new SmartCache<>()
 	protected final SmartCache<Path, CompilationInfo> pathCache = new SmartCache<>()
 
+	protected final JavaCompilationParser parser
+	protected final CompilationInfoProcessor processor
+	protected final TypeSolver typeSolver = new TypeSolver(this)
+
 	@PackageScope
 	DefaultCompilationStorage(CompilationInfoProcessor processor) {
-		this.parser = new JavaCompilationParser(processor)
+		this.processor = processor
+		this.parser = new JavaCompilationParser()
+		Runtime.runtime.addShutdownHook { forkJoinPool.shutdown() }
 	}
 
 	@PackageScope
 	CompilationStorage initialize(Path root) {
 
-		ForkJoinPool forkJoinPool = new ForkJoinPool(
-				Runtime.getRuntime().availableProcessors(),
-				ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true)
-
 		List<CompletableFuture> futures = new ArrayList<>(1000)
 
+		// first build compilation info's foundation
 		Stream<Path> walker = getJavaFilteredFileStream(root)
 		walker.forEach { Path path ->
 			futures.add(CompletableFuture
 					.runAsync({ createCompilationInfo(path) }, forkJoinPool)
 					.exceptionally { log.log(Level.WARNING, "Error compiling $path:", it) })
 		}
-
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
-		forkJoinPool.shutdown()
+
+		futures.clear() // search for used types after compilation as star imports are else not resolvable
+		allCompilationInfo.each { info ->
+			futures.add(CompletableFuture
+					.runAsync({ info.findUsedTypes(typeSolver) }, forkJoinPool)
+					.thenRun { if (processor) info.runProcessor(processor) }
+					.exceptionally { log.log(Level.WARNING, "Error finding used types for $info.path:", it) })
+		}
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
+
 		StreamCloser.quietly(walker)
 		return this
 	}
@@ -105,12 +120,29 @@ class DefaultCompilationStorage implements CompilationStorage {
 		return typeCache.get(qualifiedOuterType)
 	}
 
-	protected void createCompilationInfo(Path path, String code = null) {
+	/**
+	 * Compiles from path or source code and return the compilation info.
+	 * May be null!
+	 */
+	protected CompilationInfo createCompilationInfo(Path path, String code = null) {
 		def compile = code ? parser.compileFromCode(path, code) : parser.compile(path)
 		compile.ifPresent {
 			typeCache.put(it.qualifiedType, it)
 			pathCache.put(path, it)
 		}
+		compile.orElse(null)
+	}
+
+	/**
+	 * Postprocessing of compilation info's. Mainly due to the reason that type resolver
+	 * needs a full storage for finding used types. Parameter and result may be null!
+	 */
+	protected CompilationInfo findTypesAndRunProcessor(CompilationInfo info) {
+		if (info) {
+			info.findUsedTypes(typeSolver)
+			if (processor) info.runProcessor(processor)
+		}
+		return info
 	}
 
 }

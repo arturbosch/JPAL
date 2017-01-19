@@ -10,9 +10,9 @@ import com.github.javaparser.ast.type.Type
 import com.github.javaparser.utils.Pair
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.internal.Validate
-import io.gitlab.arturbosch.jpal.resolution.nested.NoClassesException
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import io.gitlab.arturbosch.jpal.resolution.ResolutionData
+import io.gitlab.arturbosch.jpal.resolution.nested.NoClassesException
 import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
 
 import java.util.stream.Collectors
@@ -160,15 +160,16 @@ final class TypeHelper {
 	/**
 	 * Finds all used types which are used within this compilation unit.
 	 * @param unit the compilation unit
+	 * @param resolver use given type solver for qualified types or build one if null
 	 * @return a set of qualified types
 	 */
-	static List<QualifiedType> findAllUsedTypes(CompilationUnit unit) {
+	static List<QualifiedType> findAllUsedTypes(CompilationUnit unit, TypeSolver resolver = null) {
 		def resolutionData = ResolutionData.of(unit)
 		return unit.getNodesByType(ClassOrInterfaceType.class)
 				.unique { a, b -> a.nameAsString != b.nameAsString ? 1 : 0 }
 				.stream()
 				.map { withOuterClasses(it) }
-				.map { new TypeSolver().getQualifiedType(resolutionData, it) }
+				.map { (resolver ? new TypeSolver() : resolver).getQualifiedType(resolutionData, it) }
 				.collect(Collectors.toList())
 	}
 
