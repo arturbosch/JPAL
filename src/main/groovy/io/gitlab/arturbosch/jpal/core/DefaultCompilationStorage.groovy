@@ -93,7 +93,9 @@ class DefaultCompilationStorage implements CompilationStorage {
 	}
 
 	private static Stream<Path> getJavaFilteredFileStream(Path root) {
-		return Files.walk(root).parallel().filter { it.toString().endsWith(".java") }
+		return Files.walk(root).parallel()
+				.filter { it.toString().endsWith(".java") }
+				.filter { !it.toString().endsWith("module-info.java") }
 				.filter { !it.toString().endsWith("package-info.java") } as Stream<Path>
 	}
 
@@ -125,15 +127,20 @@ class DefaultCompilationStorage implements CompilationStorage {
 	 * May be null!
 	 */
 	protected CompilationInfo createCompilationInfo(Path path, String code = null) {
+		if (isPackageOrModuleInfo(path)) return null
 		def compile = code ? parser.compileFromCode(path, code) : parser.compile(path)
 		compile.ifPresent {
 			typeCache.put(it.qualifiedType, it)
 			pathCache.put(path, it)
 		}
-		compile.orElse(null)
+		return compile.orElse(null)
 	}
 
-	/**
+	private static boolean isPackageOrModuleInfo(Path path) {
+		def filename = path.fileName.toString()
+		return filename == "package-info.java" || filename == "module-info.java"
+	}
+/**
 	 * Postprocessing of compilation info's. Mainly due to the reason that type resolver
 	 * needs a full storage for finding used types. Parameter and result may be null!
 	 */
