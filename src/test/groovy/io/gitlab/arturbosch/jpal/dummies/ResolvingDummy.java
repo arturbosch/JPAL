@@ -64,6 +64,11 @@ public class ResolvingDummy {
 		new SubSolveTypeDummy().instance().instance().method(5);
 	}
 
+	// builder pattern
+	public void m7() {
+		new ResolvingBuilder().withId(1).withName("abc").build();
+	}
+
 	class InnerResolvingDummy {
 		String s;
 
@@ -77,6 +82,18 @@ public class ResolvingDummy {
 
 		SolveTypeDummy chain() {
 			return new SolveTypeDummy();
+		}
+	}
+
+	class ResolvingBuilder {
+		ResolvingBuilder withId(int i){
+			return this;
+		}
+		ResolvingBuilder withName(String s){
+			return this;
+		}
+		ResolvingDummy build() {
+			return new ResolvingDummy();
 		}
 	}
 }

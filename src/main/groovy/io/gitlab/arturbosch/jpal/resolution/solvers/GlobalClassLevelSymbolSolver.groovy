@@ -86,7 +86,12 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 		// loop through field/method accesses
 		symbolReference = asMethodOrFieldChain(maybeFieldAccess.scope, info)
 		if (symbolReference) {
-			return resolveFieldInTypeScope(symbolReference.qualifiedType, symbol)
+			def fieldReference = resolveFieldInTypeScope(symbolReference.qualifiedType, symbol)
+			fieldReference.ifPresent {
+				def reference = it as FieldSymbolReference
+				reference.previousReference = symbolReference
+			}
+			return fieldReference
 		}
 
 		return Optional.empty()
@@ -110,15 +115,19 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 		// loop through field/method accesses
 		symbolReference = asMethodOrFieldChain(maybeCallExpr.scope, info)
 		if (symbolReference) {
-			return resolveMethodInTypeScope(symbolReference.qualifiedType, symbol, maybeCallExpr)
+			def methodReference = resolveMethodInTypeScope(symbolReference.qualifiedType, symbol, maybeCallExpr)
+			methodReference.ifPresent {
+				def reference = it as MethodSymbolReference
+				reference.previousReference = symbolReference
+			}
+			return methodReference
 		}
 
 		return Optional.empty()
 	}
 
 	private SymbolReference asMethodOrFieldChain(Optional<Expression> scope, CompilationInfo info) {
-		scope// Needs #696 (NodeWithOptionalScope) and #702 (NodeWithSimpleName for FieldAccess) - see ticket #21!
-				.filter { it instanceof NodeWithOptionalScope }
+		scope.filter { it instanceof NodeWithOptionalScope }
 				.filter { it instanceof NodeWithSimpleName }
 				.map { it as NodeWithSimpleName }
 				.map { resolve(it.name, info).orElse(null) }

@@ -4,6 +4,7 @@ import com.github.javaparser.ast.expr.SimpleName
 import io.gitlab.arturbosch.jpal.Helper
 import io.gitlab.arturbosch.jpal.core.JPAL
 import io.gitlab.arturbosch.jpal.resolution.symbols.SymbolReference
+import io.gitlab.arturbosch.jpal.resolution.symbols.WithPreviousSymbolReference
 import spock.lang.Specification
 
 import java.util.stream.Collectors
@@ -97,6 +98,24 @@ class SymbolSolverTest extends Specification {
 		then: "parent class and interface methods/fields must be found"
 		symbolReferences.stream().filter { it.isMethod() }.count() == 5L
 		symbolReferences.stream().filter { it.isVariable() }.count() == 1L
+	}
+
+	def "ResolutionDummy - method 7 - builder pattern"() {
+		when: "resolving all symbols"
+		def symbol = Helper.nth(info.unit, 6).body.get().getNodesByType(SimpleName.class)
+				.grep { it.identifier == "build" }[0]
+		def reference = solver.resolve(symbol, info).get() as WithPreviousSymbolReference
+		then:
+		reference.isBuilderPattern()
+	}
+
+	def "loop through previous symbol references"() {
+		when:
+		def symbol = Helper.nth(info.unit, 4).body.get().getNodesByType(SimpleName.class)
+				.grep { it.identifier == "getAnInt" }[0]
+		def reference = solver.resolve(symbol, info).get() as WithPreviousSymbolReference
+		then:
+		!reference.isBuilderPattern()
 	}
 
 }
