@@ -140,10 +140,11 @@ class DefaultCompilationStorage implements CompilationStorage {
 		def filename = path.fileName.toString()
 		return filename == "package-info.java" || filename == "module-info.java"
 	}
-/**
- * Postprocessing of compilation info's. Mainly due to the reason that type resolver
- * needs a full storage for finding used types. Parameter and result may be null!
- */
+
+	/**
+	 * Postprocessing of compilation info's. Mainly due to the reason that type resolver
+	 * needs a full storage for finding used types. Parameter and result may be null!
+	 */
 	protected CompilationInfo findTypesAndRunProcessor(CompilationInfo info) {
 		if (info) {
 			info.findUsedTypes(typeSolver)
