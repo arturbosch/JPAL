@@ -47,10 +47,6 @@ import java.util.stream.Stream
 @CompileStatic
 class DefaultCompilationStorage implements CompilationStorage {
 
-	protected final ForkJoinPool forkJoinPool = new ForkJoinPool(
-			Runtime.getRuntime().availableProcessors(),
-			ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true)
-
 	protected final SmartCache<QualifiedType, CompilationInfo> typeCache = new SmartCache<>()
 	protected final SmartCache<Path, CompilationInfo> pathCache = new SmartCache<>()
 
@@ -62,11 +58,14 @@ class DefaultCompilationStorage implements CompilationStorage {
 	DefaultCompilationStorage(CompilationInfoProcessor processor) {
 		this.processor = processor
 		this.parser = new JavaCompilationParser()
-		Runtime.runtime.addShutdownHook { forkJoinPool.shutdown() }
 	}
 
 	@PackageScope
 	CompilationStorage initialize(Path root) {
+
+		ForkJoinPool forkJoinPool = new ForkJoinPool(
+				Runtime.getRuntime().availableProcessors(),
+				ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true)
 
 		List<CompletableFuture> futures = new ArrayList<>(1000)
 
@@ -88,6 +87,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 		}
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
 
+		forkJoinPool.shutdown()
 		StreamCloser.quietly(walker)
 		return this
 	}
@@ -141,9 +141,9 @@ class DefaultCompilationStorage implements CompilationStorage {
 		return filename == "package-info.java" || filename == "module-info.java"
 	}
 /**
-	 * Postprocessing of compilation info's. Mainly due to the reason that type resolver
-	 * needs a full storage for finding used types. Parameter and result may be null!
-	 */
+ * Postprocessing of compilation info's. Mainly due to the reason that type resolver
+ * needs a full storage for finding used types. Parameter and result may be null!
+ */
 	protected CompilationInfo findTypesAndRunProcessor(CompilationInfo info) {
 		if (info) {
 			info.findUsedTypes(typeSolver)
