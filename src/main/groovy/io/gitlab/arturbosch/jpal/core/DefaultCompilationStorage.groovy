@@ -3,6 +3,7 @@ package io.gitlab.arturbosch.jpal.core
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import groovy.util.logging.Log
+import io.gitlab.arturbosch.jpal.internal.PrefixedThreadFactory
 import io.gitlab.arturbosch.jpal.internal.SmartCache
 import io.gitlab.arturbosch.jpal.internal.StreamCloser
 import io.gitlab.arturbosch.jpal.internal.Validate
@@ -12,7 +13,7 @@ import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.Executors
 import java.util.logging.Level
 import java.util.stream.Stream
 
@@ -63,9 +64,8 @@ class DefaultCompilationStorage implements CompilationStorage {
 	@PackageScope
 	CompilationStorage initialize(Path root) {
 
-		ForkJoinPool forkJoinPool = new ForkJoinPool(
-				Runtime.getRuntime().availableProcessors(),
-				ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true)
+		def threadPool = Executors.newFixedThreadPool(Runtime.runtime.availableProcessors(),
+				new PrefixedThreadFactory("jpal"))
 
 		List<CompletableFuture> futures = new ArrayList<>(1000)
 
@@ -73,7 +73,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 		Stream<Path> walker = getJavaFilteredFileStream(root)
 		walker.forEach { Path path ->
 			futures.add(CompletableFuture
-					.runAsync({ createCompilationInfo(path) }, forkJoinPool)
+					.runAsync({ createCompilationInfo(path) }, threadPool)
 					.exceptionally { log.log(Level.WARNING, "Error compiling $path:", it) })
 		}
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
@@ -81,13 +81,13 @@ class DefaultCompilationStorage implements CompilationStorage {
 		futures.clear() // search for used types after compilation as star imports are else not resolvable
 		allCompilationInfo.each { info ->
 			futures.add(CompletableFuture
-					.runAsync({ info.findUsedTypes(typeSolver) }, forkJoinPool)
+					.runAsync({ info.findUsedTypes(typeSolver) }, threadPool)
 					.thenRun { if (processor) info.runProcessor(processor) }
 					.exceptionally { log.log(Level.WARNING, "Error finding used types for $info.path:", it) })
 		}
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
 
-		forkJoinPool.shutdown()
+		threadPool.shutdown()
 		StreamCloser.quietly(walker)
 		return this
 	}
