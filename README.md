@@ -1,7 +1,7 @@
 # JPAL - Javaparser Aid Library
 
 Jpal is a library for javaparser which provides additional features
-like cross referencing, qualified types and other useful classes.
+like cross referencing, qualified types, symbol solving and other useful classes.
 
 Development on GitLab: https://gitlab.com/arturbosch/JPAL 
 Mirror on GitHub: https://github.com/arturbosch/JPAL
@@ -9,6 +9,7 @@ Mirror on GitHub: https://github.com/arturbosch/JPAL
 ## Table of contents
 1. [Build](#build)
 2. [Cross Referencing](#cross)
+3. [Symbol solving](#symbols)
 3. [Helpers](#helpers)
 4. [FAQ](#faq)
 4. [Contribute](#contribute)
@@ -28,7 +29,7 @@ repositories {
 }
 ```
 
-`compile 'io.gitlab.arturbosch.jpal:jpal:1.0.RC1'`
+`compile 'io.gitlab.arturbosch.jpal:jpal:1.0.RC3'`
 
 For Maven see `https://bintray.com/arturbosch/generic/JPAL` -> SetUp
 
@@ -36,8 +37,7 @@ For Maven see `https://bintray.com/arturbosch/generic/JPAL` -> SetUp
 <dependency>
   <groupId>io.gitlab.arturbosch.jpal</groupId>
   <artifactId>jpal</artifactId>
-  <version>1.0.RC1</version>
-  <type>pom</type>
+  <version>1.0.RC3</version>
 </dependency>
 ```
 
@@ -50,20 +50,16 @@ For Maven see `https://bintray.com/arturbosch/generic/JPAL` -> SetUp
 ## <a name="cross">Cross Referencing</a>
 
 Is provided by type resolving and caching of qualified types, paths
-and compilation units.
+and compilation units via a CompilationStorage.
 
-Choose a mechanism:
-
-### CompilationStorage - ahead of time
+### CompilationStorage
 
 Should be used before you process the AST as the compilation storage
 analyzes given project path and caches all compilation units.
 Compilation units are wrapped into CompilationInfo's which stores 
 additional information like used qualified types within this unit.
 
-```java
-CompilationStorage.create(projectPath)
-```
+```CompilationStorage storage = JPAL.new(projectPath)```
 
 Obtaining a compilation info can be done through two methods:
 
@@ -72,26 +68,27 @@ def maybeInfo = CompilationStorage.getCompilationInfo(path)
 def maybeInfo = CompilationStorage.getCompilationInfo(qualifiedType)
 ```
 
-### CompilationTree - just in time
+##### Updating the CompilationStorage
 
-The project root path should be provided before the AST usage.
+`UpdatableCompilationStorage storage = JPAL.updatable()`
 
+This creates a new empty updatable storage instance.
+
+`UpdatableCompilationStorage storage = JPAL.initializedUpdatable(projectPath)`
+
+This creates a precompiled storage with all java sub paths down from project path.
+All methods of __CompilationStorage__ to retrieve __CompilationInfo__ work also on updatable storages.
+
+Use methods following methods to update the storage:
 ```java
-CompilationTree.registerRoot(projectPath)
-```
-
-Now the compilation unit can be obtained by searching for paths
-and qualified types. Is no compilation unit cached the path/type is 
-searched within the project and later cached.
-
-```java 
-def maybeInfo = CompilationTree.findCompilationInfo(path)
-def maybeInfo = CompilationTree.findCompilationInfo(qualifiedType)
+storage.updateCompilationInfo(List<Path> paths)
+storage.relocateCompilationInfo(Map<Path, Path> relocates)
+storage.removeCompilationInfo(List<Path> paths)
 ```
 
 ### QualifiedType
 
-The easiest way to obtain a qualified type is to use the TypeHelper:
+The easiest way to obtain a qualified type is to use the Resolver:
 
 ```java
 ClassOrInterfaceDeclaration clazz = ...;
@@ -109,24 +106,19 @@ QualifiedType type = TypeHelper.getQualifiedType(ClassOrInterfaceDeclaration n, 
 QualifiedType type = TypeHelper.getQualifiedTypeFromPackage(TypeDeclaration n, PackageDeclaration packageDeclaration)
 ```
 
+The preferred way is to use a Resolver.
+
 ### Resolver
 
 If you want the qualified type but only have a `Type` or any subclass
-use the `Resolver` and `ResolutionData` classes.
-
-The ResolutionData stores package and import information in a specific way
-and can be constructed from a compilation unit.
+use the `Resolver` and `CompilationInfo` classes.
 
 ```java
-CompilationUnit unit = ...
-ResolutionData.of(unit)
-```
-
-The Resolver tries to build the qualified type for given `Type` and the 
-`ResolutionData`:
-
-```java
-Resolver.getQualifiedType(data, type)
+CompilationStorage storage = JPAL.new(projectPath)
+Resolver resolver = new Resolver(storage)
+CompilationInfo info = storage.getCompilationInfo(myPath/myType)
+ClassOrInterfaceType searchedType = ...
+resolver.resolveType(seachedType, info)
 ```
 
 The resolver checks for following situations:
@@ -136,6 +128,18 @@ The resolver checks for following situations:
 - Type is in within an asterisk import
 - Type is in java.lang
 - Type is within the package
+
+## <a name="symbols">Symbol Solving</a>
+
+SimpleName classes of __javaparser__ are treated as symbols. A Resolver can resolve symbols
+and find the type and declaration of a symbol.
+
+```java
+CompilationStorage storage = JPAL.new(projectPath)
+Resolver resolver = new Resolver(storage)
+CompilationInfo info = storage.getCompilationInfo(myPath/myType)
+resolver.resolveSymbol(symbol,info)
+```
 
 ## <a name="helpers">Helpers - Useful Classes</a>
 
@@ -150,22 +154,8 @@ The resolver checks for following situations:
 
 #### How to create qualified types for inner classes?
 
-```java
-CompilationUnit unit = ...
-ResolutionData data = ...
-def outerClass = new ClassOrInterfaceType("OuterClass")
-def handler = new InnerClassesHandler(unit)
-String name = handler.getUnqualifiedNameForInnerClass(outerClass) 
-def innerClass = new ClassOrInterfaceType(name)
-
-def qualifiedType = Resolver.getQualifiedType(data, innerClass)
-```
-
-```java 
-...
-def unqualifiedName = ClassHelper.appendOuterClassIfInnerClass(ClassOrInterfaceDeclaration n)
-def qualifiedType = Resolver.getQualifiedType(data, new ClassOrInterfaceType(unqualifiedName))
-```
+If you use the CompilationStorage with a CompilationUnit, you can get all
+inner classes with `info.getInnerClasses()`.
 
 #### How to get all inner classes names
 
@@ -191,8 +181,9 @@ ClassHelper.createSignature(ClassOrInterfaceDeclaration n)
 final QualifiedType qualifiedType
 final CompilationUnit unit
 final Path path
-final List<QualifiedType> usedTypes
-final Set<QualifiedType> innerClasses
+final TypeDeclaration mainType
+final ResolutionData data
+final Map<QualifiedType, TypeDeclaration> innerClasses
 ```
 
 ## <a name="contribute">How to contribute?</a>
