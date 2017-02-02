@@ -43,6 +43,10 @@ class Helper {
 		return unit.getNodesByType(ClassOrInterfaceDeclaration.class).first()
 	}
 
+	static ClassOrInterfaceDeclaration nthInnerClass(CompilationUnit unit, int n) {
+		return firstClass(unit).getNodesByType(ClassOrInterfaceDeclaration.class)[n]
+	}
+
 	static FieldDeclaration nth(ClassOrInterfaceDeclaration clazz, int n) {
 		return clazz.getNodesByType(FieldDeclaration.class).get(n)
 	}

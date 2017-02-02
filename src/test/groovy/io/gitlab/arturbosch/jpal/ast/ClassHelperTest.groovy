@@ -1,6 +1,5 @@
 package io.gitlab.arturbosch.jpal.ast
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import io.gitlab.arturbosch.jpal.Helper
 import spock.lang.Specification
 
@@ -28,8 +27,7 @@ class ClassHelperTest extends Specification {
 
 	def "default vs full signature"() {
 		given: "cycle class with two inner classes"
-		def outerClass = Helper.firstClass(Helper.compile(Helper.CYCLE_DUMMY))
-		def innerClass = outerClass.getNodesByType(ClassOrInterfaceDeclaration.class)[0]
+		def innerClass = Helper.nthInnerClass(Helper.compile(Helper.CYCLE_DUMMY), 0)
 		when: "calling signature methods"
 		def signature = ClassHelper.createSignature(innerClass)
 		def fullSignature = ClassHelper.createFullSignature(innerClass)
@@ -41,5 +39,14 @@ class ClassHelperTest extends Specification {
 		def unqualifiedName = ClassHelper.appendOuterClassIfInnerClass(innerClass)
 		then: "the outer class is appended"
 		unqualifiedName == "CycleDummy.InnerCycleOne"
+	}
+
+	def "full signature of a complex type has proper spacing"() {
+		given: "dummy class with complex inner class"
+		def clazz = Helper.nthInnerClass(Helper.compile(Helper.BASE_PATH.resolve("ClassSignatureDummy.java")), 0)
+		when: "retrieving the full signature"
+		def fullSignature = ClassHelper.createFullSignature(clazz)
+		then: "there must be a space between generic declarations"
+		fullSignature == "ClassSignatureDummy\$VeryComplexInnerClass<T extends String, B extends List<T>> extends ClassSignatureDummy implements Cloneable, Runnable"
 	}
 }

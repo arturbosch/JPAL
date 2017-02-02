@@ -72,9 +72,9 @@ final class ClassHelper {
 	 */
 	static String createSignature(ClassOrInterfaceDeclaration n) {
 		Validate.notNull(n)
-		def types = n.typeParameters.join(",")
-		def extend = n.extendedTypes.join(",")
-		def implement = n.implementedTypes.join(",")
+		def types = n.typeParameters.join(", ")
+		def extend = n.extendedTypes.join(", ")
+		def implement = n.implementedTypes.join(", ")
 		return "$n.name${if (types) "<$types>" else ""}${if (extend) " extends $extend" else ""}${if (implement) " implements $implement" else ""}"
 	}
 
