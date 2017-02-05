@@ -82,7 +82,7 @@ class SymbolSolverTest extends Specification {
 		def symbolReferences = symbols.collect { solver.resolve(it, info).get() }
 
 		then: "end of the chain must be a method with symbol 'getAnInt'"
-		symbolReferences.stream().filter { !it.isMethod() }.count() == 7L
+		symbolReferences.stream().filter { !it.isMethod() }.count() == 8L
 		List<SymbolReference> list = symbolReferences.stream().filter { it.isMethod() }.collect(Collectors.toList())
 		list.size() == 1
 		list[0].symbol.identifier == "getAnInt"

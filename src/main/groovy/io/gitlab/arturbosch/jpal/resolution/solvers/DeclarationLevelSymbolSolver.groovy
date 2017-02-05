@@ -7,12 +7,14 @@ import com.github.javaparser.ast.expr.SimpleName
 import com.github.javaparser.ast.expr.VariableDeclarationExpr
 import com.github.javaparser.ast.nodeTypes.NodeWithType
 import com.github.javaparser.ast.type.ClassOrInterfaceType
+import com.github.javaparser.ast.type.Type
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.core.CompilationInfo
 import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import io.gitlab.arturbosch.jpal.resolution.symbols.LocaleVariableSymbolReference
 import io.gitlab.arturbosch.jpal.resolution.symbols.MethodSymbolReference
 import io.gitlab.arturbosch.jpal.resolution.symbols.NodeWithTypeSymbolReference
+import io.gitlab.arturbosch.jpal.resolution.symbols.SimpleSymbolReference
 import io.gitlab.arturbosch.jpal.resolution.symbols.SymbolReference
 import io.gitlab.arturbosch.jpal.resolution.symbols.TypeSymbolReference
 
@@ -25,7 +27,7 @@ final class DeclarationLevelSymbolSolver implements Solver {
 	private TypeSolver resolver
 	private CompilationStorage storage
 
-	DeclarationLevelSymbolSolver(TypeSolver resolver) {
+	DeclarationLevelSymbolSolver(CompilationStorage storage, TypeSolver resolver) {
 		this.storage = storage
 		this.resolver = resolver
 	}
@@ -44,6 +46,14 @@ final class DeclarationLevelSymbolSolver implements Solver {
 			def qualifiedType = resolver.getQualifiedType(info.data,
 					new ClassOrInterfaceType(declaration.name.identifier))
 			return Optional.of(new TypeSymbolReference(symbol, qualifiedType, declaration))
+		} else if (parent && parent instanceof Type) { // javaparser 3.1.0 fixed that symbols are parents in types
+			def qualifiedType = resolver.getQualifiedType(info.data, parent)
+			if (qualifiedType.isFromJdk()) { // If its a java type we can't find the declaration
+				return Optional.of(new SimpleSymbolReference(symbol, qualifiedType))
+			}
+			return storage.getCompilationInfo(qualifiedType)
+					.map { it.innerClasses[qualifiedType] ?: it.mainType }
+					.map { new TypeSymbolReference(symbol, qualifiedType, it as TypeDeclaration) }
 		}
 		return Optional.empty()
 	}

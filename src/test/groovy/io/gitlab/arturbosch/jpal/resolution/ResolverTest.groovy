@@ -26,9 +26,12 @@ class ResolverTest extends Specification {
 
 	def "ResolveType"() {
 		given: "all symbols of dummy class"
-		def symbols = info.unit.getNodesByType(SimpleName)
+		def symbols = info.unit.getNodesByType(SimpleName.class)
+		println(symbols)
 		when: "resolving the symbols"
 		def references = symbols.collect { resolver.resolve(it, info) }
+		references.withIndex().each {println("$it.second - ${it.first.isPresent()}")}
+		println(references)
 		then: "all must be resolved"
 		references.stream().allMatch { it.isPresent() }
 	}

@@ -25,7 +25,7 @@ final class SymbolSolver implements Solver {
 		this.resolver = new TypeSolver(storage)
 		this.variableSolver = new MethodLevelVariableSymbolSolver(resolver)
 		this.classLevelSolver = new LocalClassLevelSymbolSolver(resolver)
-		this.declarationSolver = new DeclarationLevelSymbolSolver(resolver)
+		this.declarationSolver = new DeclarationLevelSymbolSolver(storage, resolver)
 		this.nameLevelSolver = new NameLevelSymbolSolver(storage, resolver, variableSolver)
 		this.globalSolver = new GlobalClassLevelSymbolSolver(storage, resolver, nameLevelSolver, classLevelSolver)
 	}
