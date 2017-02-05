@@ -1,5 +1,8 @@
 # JPAL - Javaparser Aid Library
 
+[![build status](https://gitlab.com/arturbosch/jpal/badges/master/build.svg)](https://gitlab.com/arturbosch/jpal/commits/master)
+[ ![Download](https://api.bintray.com/packages/arturbosch/code-analysis/Jpal/images/download.svg) ](https://bintray.com/arturbosch/code-analysis/Jpal/_latestVersion)
+
 Jpal is a library for javaparser which provides additional features
 like cross referencing, qualified types, symbol solving and other useful classes.
 
