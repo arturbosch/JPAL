@@ -11,6 +11,7 @@ import io.gitlab.arturbosch.jpal.resolution.ResolutionData
 import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
 
 import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Compact information about a compilation unit. Storing the qualified type of
@@ -25,6 +26,7 @@ class CompilationInfo implements Processable {
 	final QualifiedType qualifiedType
 	final CompilationUnit unit
 	final Path path
+	final Path relativePath
 	final TypeDeclaration mainType
 	final ResolutionData data
 	final Map<QualifiedType, TypeDeclaration> innerClasses
@@ -69,8 +71,15 @@ class CompilationInfo implements Processable {
 		this.qualifiedType = qualifiedType
 		this.unit = unit
 		this.path = path
+		this.relativePath = relativizePath(path, unit)
 		this.usedTypes = Collections.emptyList()
 		this.data = ResolutionData.of(unit)
+	}
+
+	private static void relativizePath(Path path, CompilationUnit unit) {
+		def name = path.fileName
+		unit.packageDeclaration.ifPresent { name = Paths.get(it.nameAsString.replace(".", "//")).resolve(name) }
+		name
 	}
 
 	@PackageScope
