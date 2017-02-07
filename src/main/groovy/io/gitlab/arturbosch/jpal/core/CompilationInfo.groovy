@@ -76,7 +76,7 @@ class CompilationInfo implements Processable {
 		this.data = ResolutionData.of(unit)
 	}
 
-	private static void relativizePath(Path path, CompilationUnit unit) {
+	private static Path relativizePath(Path path, CompilationUnit unit) {
 		def name = path.fileName
 		unit.packageDeclaration.ifPresent { name = Paths.get(it.nameAsString.replace(".", "//")).resolve(name) }
 		name
