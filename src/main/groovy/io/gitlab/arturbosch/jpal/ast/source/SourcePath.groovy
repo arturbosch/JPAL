@@ -19,7 +19,7 @@ class SourcePath {
 	String path
 
 	static SourcePath of(Path path) {
-		return new SourcePath(path.toAbsolutePath().normalize().toString())
+		return new SourcePath(path.toString())
 	}
 
 	@Override
