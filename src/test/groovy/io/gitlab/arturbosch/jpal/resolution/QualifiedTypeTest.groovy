@@ -1,6 +1,5 @@
 package io.gitlab.arturbosch.jpal.resolution
 
-import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import spock.lang.Specification
 
 /**
@@ -24,6 +23,16 @@ class QualifiedTypeTest extends Specification {
 		def qualifiedType = new QualifiedType(name, QualifiedType.TypeToken.REFERENCE)
 		then:
 		!qualifiedType.isInnerClass()
+	}
+
+	def "inner class with default package"() {
+		given:
+		def name = "<default>.Cycle.CycleTwo"
+		def qualifiedType = new QualifiedType(name, QualifiedType.TypeToken.REFERENCE)
+		when:
+		def clazz = qualifiedType.asOuterClass()
+		then:
+		clazz.name == "<default>.Cycle"
 	}
 
 	def "from inner class type to outer class type"() {

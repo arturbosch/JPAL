@@ -1,5 +1,5 @@
 group 'io.gitlab.arturbosch.jpal'
-version '1.0.RC4'
+version '1.0.RC4.b2'
 
 apply plugin: 'java'
 apply plugin: 'groovy'

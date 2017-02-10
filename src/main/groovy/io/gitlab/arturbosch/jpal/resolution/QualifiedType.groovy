@@ -18,8 +18,10 @@ import io.gitlab.arturbosch.jpal.internal.Validate
 // Groovy Compiler Bug?
 class QualifiedType {
 
-	static QualifiedType UNKNOWN = new QualifiedType("UNKNOWN", QualifiedType.TypeToken.UNKNOWN)
-	static QualifiedType VOID = new QualifiedType("Void", QualifiedType.TypeToken.JAVA_REFERENCE)
+	static final QualifiedType UNKNOWN = new QualifiedType("UNKNOWN", QualifiedType.TypeToken.UNKNOWN)
+	static final QualifiedType VOID = new QualifiedType("Void", QualifiedType.TypeToken.JAVA_REFERENCE)
+
+	static final String DEFAULT_PACKAGE_NAME = "<default>"
 
 	final String name
 	final String shortName
@@ -50,7 +52,8 @@ class QualifiedType {
 	}
 
 	private static String extractPackageName(String name) {
-		return name.split("\\.").grep().takeWhile { Character.isLowerCase(it.charAt(0)) }.join(".")
+		def packageName = name.split("\\.").grep().takeWhile { Character.isLowerCase(it.charAt(0)) }.join(".")
+		return packageName.isEmpty() ? DEFAULT_PACKAGE_NAME : packageName
 	}
 
 	/**
@@ -117,7 +120,7 @@ class QualifiedType {
 		def lastChunk = getLastChunk(name)
 		def outerClassName = name.substring(0, name.lastIndexOf("."))
 		def currentChunk = getLastChunk(outerClassName)
-		while (!Character.isLowerCase(currentChunk.charAt(0))) {
+		while (!Character.isLowerCase(currentChunk.charAt(0)) && currentChunk != onlyPackageName) {
 			lastChunk = currentChunk
 			outerClassName = outerClassName.substring(0, outerClassName.lastIndexOf("."))
 			currentChunk = getLastChunk(outerClassName)
