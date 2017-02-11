@@ -1,9 +1,14 @@
-group 'io.gitlab.arturbosch.jpal'
-version '1.0.RC4.b2'
+plugins {
+	id "com.jfrog.bintray" version "1.7.3"
+}
 
 apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+group 'io.gitlab.arturbosch.jpal'
+version '1.0.RC4.b2'
 
 repositories {
 	mavenCentral()
@@ -14,6 +19,36 @@ uploadArchives {
 	repositories {
 		mavenDeployer {
 			repository(url: uri('../repo'))
+		}
+	}
+}
+
+bintray {
+	user = System.getenv("BINTRAY_USER") ?: ""
+	key = System.getenv("BINTRAY_API_KEY") ?: ""
+	publications = ["JpalPublication"]
+
+	pkg {
+		repo = 'code-analysis'
+		name = 'Jpal'
+		userOrg = 'arturbosch'
+		licenses = ['Apache-2.0']
+		vcsUrl = "https://github.com/arturbosch/JPAL"
+
+		version {
+			name = project.version
+			released = new Date()
+		}
+	}
+}
+
+publishing {
+	publications {
+		JpalPublication(MavenPublication) {
+			from components.java
+			groupId project.group
+			artifactId project.name
+			version project.version
 		}
 	}
 }
