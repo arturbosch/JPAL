@@ -53,4 +53,13 @@ final class JPAL {
 		return new UpdatableDefaultCompilationStorage(processor).initialize(root) as UpdatableCompilationStorage
 	}
 
+	/**
+	 * Creates a configuration builder for compilation storage's.
+	 *
+	 * @return builder for compilation storage's
+	 */
+	static CompilationStorageBuilder builder() {
+		return new CompilationStorageBuilder()
+	}
+
 }
