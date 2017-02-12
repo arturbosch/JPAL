@@ -5,6 +5,7 @@ import io.gitlab.arturbosch.jpal.Helper
 import spock.lang.Specification
 
 import java.nio.file.Files
+import java.util.regex.Pattern
 import java.util.stream.Collectors
 
 /**
@@ -61,6 +62,16 @@ class UpdatableCompilationStorageTest extends Specification {
 		then: "relocated info's name and path has changed"
 		relocatedInfo.path == Helper.DUMMY
 		relocatedInfo.mainType.nameAsString == "Dummy"
+	}
+
+	def "filtered dummy is not in the storage"() {
+		given: "an updatable storage with filters"
+		def storage = JPAL.updatable(null, [Pattern.compile(".*/filtered/.*")])
+		when: "updating storage with a filtered path"
+		def infos = storage.updateCompilationInfo([Helper.BASE_PATH.resolve("filtered/FilteredDummy.java")])
+		then: "the path should not be compiled"
+		infos.isEmpty()
+
 	}
 
 	def "updatable postprocessing of used types"() {

@@ -15,6 +15,7 @@ import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.logging.Level
+import java.util.regex.Pattern
 import java.util.stream.Stream
 
 /**
@@ -54,10 +55,12 @@ class DefaultCompilationStorage implements CompilationStorage {
 	protected final JavaCompilationParser parser
 	protected final CompilationInfoProcessor processor
 	protected final TypeSolver typeSolver = new TypeSolver(this)
+	protected final List<Pattern> pathFilters
 
 	@PackageScope
-	DefaultCompilationStorage(CompilationInfoProcessor processor) {
+	DefaultCompilationStorage(CompilationInfoProcessor processor = null, List<Pattern> pathFilters = new ArrayList<>()) {
 		this.processor = processor
+		this.pathFilters = pathFilters
 		this.parser = new JavaCompilationParser()
 	}
 
@@ -128,12 +131,17 @@ class DefaultCompilationStorage implements CompilationStorage {
 	 */
 	protected CompilationInfo createCompilationInfo(Path path, String code = null) {
 		if (isPackageOrModuleInfo(path)) return null
+		if (isFiltered(path)) return null
 		def compile = code ? parser.compileFromCode(path, code) : parser.compile(path)
 		compile.ifPresent {
 			typeCache.put(it.qualifiedType, it)
 			pathCache.put(path, it)
 		}
 		return compile.orElse(null)
+	}
+
+	private boolean isFiltered(path) {
+		!path.toString().endsWith(".java") || pathFilters.any { it.matcher(path.toString()).find() }
 	}
 
 	private static boolean isPackageOrModuleInfo(Path path) {

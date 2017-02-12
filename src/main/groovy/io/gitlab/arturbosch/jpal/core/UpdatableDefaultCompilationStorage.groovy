@@ -10,6 +10,7 @@ import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.regex.Pattern
 import java.util.stream.Collectors
 
 /**
@@ -22,8 +23,9 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 			new PrefixedThreadFactory("jpal"))
 
 	@PackageScope
-	UpdatableDefaultCompilationStorage(CompilationInfoProcessor processor) {
-		super(processor)
+	UpdatableDefaultCompilationStorage(CompilationInfoProcessor processor = null,
+									   List<Pattern> pathFilters = new ArrayList<>()) {
+		super(processor, pathFilters)
 		Runtime.runtime.addShutdownHook { threadPool.shutdown() }
 	}
 

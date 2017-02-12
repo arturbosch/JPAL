@@ -3,6 +3,7 @@ package io.gitlab.arturbosch.jpal.core
 import io.gitlab.arturbosch.jpal.internal.Validate
 
 import java.nio.file.Path
+import java.util.regex.Pattern
 
 /**
  * Key class to create a compilation storage.
@@ -20,11 +21,14 @@ final class JPAL {
 	 *
 	 * @param root project path
 	 * @param processor compilation info processor, can be null
+	 * @param pathFilters filters to use when compiling java files
 	 * @return the storage
 	 */
-	static <T> CompilationStorage 'new'(Path root, CompilationInfoProcessor<T> processor = null) {
+	static <T> CompilationStorage 'new'(Path root,
+										CompilationInfoProcessor<T> processor = null,
+										List<Pattern> pathFilters = Collections.emptyList()) {
 		Validate.isTrue(root != null, "Project path must not be null!")
-		return new DefaultCompilationStorage(processor).initialize(root)
+		return new DefaultCompilationStorage(processor, pathFilters).initialize(root)
 	}
 
 	/**
@@ -33,10 +37,12 @@ final class JPAL {
 	 * Specified processor will also run on each additional compilation info.
 	 *
 	 * @param processor compilation info processor, can be null
+	 * @param pathFilters filters to use when compiling java files
 	 * @return the only reference to this compilation unit
 	 */
-	static <T> UpdatableCompilationStorage updatable(CompilationInfoProcessor<T> processor = null) {
-		return new UpdatableDefaultCompilationStorage(processor)
+	static <T> UpdatableCompilationStorage updatable(CompilationInfoProcessor<T> processor = null,
+													 List<Pattern> pathFilters = Collections.emptyList()) {
+		return new UpdatableDefaultCompilationStorage(processor, pathFilters)
 	}
 
 	/**
@@ -46,11 +52,14 @@ final class JPAL {
 	 *
 	 * @param root project root path
 	 * @param processor compilation info processor, can be null
+	 * @param pathFilters filters to use when compiling java files
 	 * @return the only reference to this compilation unit
 	 */
-	static <T> UpdatableCompilationStorage initializedUpdatable(Path root, CompilationInfoProcessor<T> processor = null) {
+	static <T> UpdatableCompilationStorage initializedUpdatable(Path root,
+																CompilationInfoProcessor<T> processor = null,
+																List<Pattern> pathFilters = Collections.emptyList()) {
 		Validate.isTrue(root != null, "Project path must not be null!")
-		return new UpdatableDefaultCompilationStorage(processor).initialize(root) as UpdatableCompilationStorage
+		return new UpdatableDefaultCompilationStorage(processor, pathFilters).initialize(root) as UpdatableCompilationStorage
 	}
 
 	/**

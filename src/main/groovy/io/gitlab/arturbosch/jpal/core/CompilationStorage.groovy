@@ -35,4 +35,6 @@ interface CompilationStorage {
 	 */
 	Optional<CompilationInfo> getCompilationInfo(QualifiedType qualifiedType)
 
+
+
 }
