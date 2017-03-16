@@ -1,6 +1,6 @@
 plugins {
 	id "com.jfrog.bintray" version "1.7.3"
-	id 'com.github.ben-manes.versions' version '0.13.0'
+	id 'com.github.ben-manes.versions' version '0.14.0'
 //	id "com.github.hierynomus.license" version "0.13.1"
 }
 
@@ -10,7 +10,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 group 'io.gitlab.arturbosch.jpal'
-version '1.0.0.RC4.b3'
+version '1.0.0.RC4.b4'
 
 repositories {
 	mavenCentral()
@@ -56,8 +56,8 @@ publishing {
 }
 
 dependencies {
-	compile 'org.codehaus.groovy:groovy-all:2.4.8'
-	compile 'com.github.javaparser:javaparser-core:3.1.0-beta.1'
+	compile 'org.codehaus.groovy:groovy-all:2.4.9'
+	compile 'com.github.javaparser:javaparser-core:3.1.2'
 	testCompile 'org.spockframework:spock-core:1.1-groovy-2.4-rc-3'
 }
 
