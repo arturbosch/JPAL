@@ -10,6 +10,8 @@ import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
 import io.gitlab.arturbosch.jpal.resolution.symbols.SymbolReference
 
 /**
+ * Wraps solver types to provide convenient methods to resolve types and symbols.
+ *
  * @author Artur Bosch
  */
 final class Resolver implements Solver {
@@ -33,7 +35,12 @@ final class Resolver implements Solver {
 		return typeSolver.getQualifiedType(info.data, type)
 	}
 
+	QualifiedType resolveType(Type type, ResolutionData data) {
+		return typeSolver.getQualifiedType(data, type)
+	}
+
 	CompilationStorage getStorage() {
 		return storage
 	}
+
 }

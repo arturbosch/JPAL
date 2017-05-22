@@ -113,6 +113,17 @@ class CompilationInfo implements Processable {
 		return usedTypes.contains(type)
 	}
 
+	/**
+	 * Returns the type declaration of this info matching the given qualifier.
+	 *
+	 * @param qualifier searched type
+	 * @return the main declaration or an inner declaration
+	 */
+	Optional<TypeDeclaration> getTypeDeclarationByQualifier(QualifiedType qualifier) {
+		if (qualifiedType == qualifier) Optional.of(mainType)
+		else Optional.ofNullable(innerClasses.find { it.key == qualifier }.value)
+	}
+
 	@Override
 	String toString() {
 		return "CompilationInfo{" +

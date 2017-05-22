@@ -58,7 +58,7 @@ final class TypeSolver {
 		}
 
 		if (type instanceof PrimitiveType) {
-			return new QualifiedType(type.type.name(), QualifiedType.TypeToken.PRIMITIVE)
+			return new QualifiedType((type as PrimitiveType).type.name(), QualifiedType.TypeToken.PRIMITIVE)
 		}
 
 		def maybeType = TypeHelper.getClassOrInterfaceType(type).orElse(null)

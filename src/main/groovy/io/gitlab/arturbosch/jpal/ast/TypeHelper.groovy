@@ -9,9 +9,11 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType
 import com.github.javaparser.ast.type.Type
 import com.github.javaparser.utils.Pair
 import groovy.transform.CompileStatic
+import io.gitlab.arturbosch.jpal.core.CompilationInfo
 import io.gitlab.arturbosch.jpal.internal.Validate
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import io.gitlab.arturbosch.jpal.resolution.ResolutionData
+import io.gitlab.arturbosch.jpal.resolution.Resolver
 import io.gitlab.arturbosch.jpal.resolution.nested.NoClassesException
 import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
 
@@ -183,4 +185,23 @@ final class TypeHelper {
 		}
 		return new ClassOrInterfaceType(fullType)
 	}
+
+	/**
+	 * Collects all qualified types of extended and implemented types starting from given class.
+	 * A CompilationInfo for this class can be provided to decrease search cost .
+	 *
+	 * @param aClass the class to resolve ancestors for
+	 * @param resolver the resolver
+	 * @param info compilation info for the class
+	 * @return qualified types of ancestors of given class
+	 */
+	static Set<QualifiedType> findAllAncestors(ClassOrInterfaceDeclaration aClass, Resolver resolver, CompilationInfo info = null) {
+		ResolutionData data = info?.data ?:
+				ResolutionData.of(NodeHelper.findDeclaringCompilationUnit(aClass)
+						.orElseThrow { new CompilationUnitNotFoundError("Resolving all ancestors needs compilation unit of given class!") })
+
+		def collector = new AncestorCollector(resolver)
+		return collector.getAll(data, aClass)
+	}
+
 }

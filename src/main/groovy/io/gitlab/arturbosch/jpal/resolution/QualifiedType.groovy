@@ -144,4 +144,27 @@ class QualifiedType {
 		}
 		return false
 	}
+
+	boolean equals(o) {
+		if (this.is(o)) return true
+		if (getClass() != o.class) return false
+
+		QualifiedType that = (QualifiedType) o
+
+		if (name != that.name) return false
+		if (onlyPackageName != that.onlyPackageName) return false
+		if (shortName != that.shortName) return false
+		if (typeToken != that.typeToken) return false
+
+		return true
+	}
+
+	int hashCode() {
+		int result
+		result = (name != null ? name.hashCode() : 0)
+		result = 31 * result + (shortName != null ? shortName.hashCode() : 0)
+		result = 31 * result + (onlyPackageName != null ? onlyPackageName.hashCode() : 0)
+		result = 31 * result + (typeToken != null ? typeToken.hashCode() : 0)
+		return result
+	}
 }
