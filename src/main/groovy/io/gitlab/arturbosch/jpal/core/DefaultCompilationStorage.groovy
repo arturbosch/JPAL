@@ -70,23 +70,21 @@ class DefaultCompilationStorage implements CompilationStorage {
 		def threadPool = Executors.newFixedThreadPool(Runtime.runtime.availableProcessors(),
 				new PrefixedThreadFactory("jpal"))
 
-		List<CompletableFuture> futures = new ArrayList<>(1000)
-
 		// first build compilation info's foundation
 		Stream<Path> walker = getJavaFilteredFileStream(root)
-		walker.forEach { Path path ->
-			futures.add(CompletableFuture
+		List<CompletableFuture> futures = walker.collect { Path path ->
+			CompletableFuture
 					.runAsync({ createCompilationInfo(path) }, threadPool)
-					.exceptionally { log.log(Level.WARNING, "Error compiling $path:", it) })
+					.exceptionally { log.log(Level.WARNING, "Error compiling $path:", it) }
 		}
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
 
-		futures.clear() // search for used types after compilation as star imports are else not resolvable
-		allCompilationInfo.each { info ->
-			futures.add(CompletableFuture
+		// search for used types after compilation as star imports are else not resolvable
+		futures = allCompilationInfo.collect { info ->
+			CompletableFuture
 					.runAsync({ info.findUsedTypes(typeSolver) }, threadPool)
 					.thenRun { if (processor) info.runProcessor(processor) }
-					.exceptionally { log.log(Level.WARNING, "Error finding used types for $info.path:", it) })
+					.exceptionally { log.log(Level.WARNING, "Error finding used types for $info.path:", it) }
 		}
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
 
