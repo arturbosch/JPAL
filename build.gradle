@@ -10,7 +10,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 group 'io.gitlab.arturbosch.jpal'
-version '1.0.0.RC4.b5'
+version '1.0.0.RC4.b6'
 
 repositories {
 	mavenCentral()
@@ -58,7 +58,7 @@ publishing {
 dependencies {
 	compile 'org.codehaus.groovy:groovy-all:2.4.9'
 	compile 'com.github.javaparser:javaparser-core:3.1.2'
-	testCompile 'org.spockframework:spock-core:1.1-groovy-2.4-rc-3'
+	testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

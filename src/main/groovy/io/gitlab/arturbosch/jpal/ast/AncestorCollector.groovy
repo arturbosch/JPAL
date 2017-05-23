@@ -8,6 +8,8 @@ import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import io.gitlab.arturbosch.jpal.resolution.ResolutionData
 import io.gitlab.arturbosch.jpal.resolution.Resolver
 
+import java.util.stream.Collectors
+
 /**
  * Resolves and collects recursively all qualified types of the sub classes of starting class.
  *
@@ -31,12 +33,17 @@ class AncestorCollector {
 	}
 
 	private void resolve(Set<QualifiedType> resolved, ResolutionData data, ClassOrInterfaceDeclaration aClass) {
-		def types = aClass.implementedTypes + aClass.extendedTypes
+		List<ClassOrInterfaceType> types = filterAncestorTypes(aClass)
 		def ancestorTypes = resolveAncestorTypes(data, types)
 		def ancestors = extractAncestorClasses(ancestorTypes)
-
 		resolved.addAll(ancestorTypes)
 		ancestors.each { resolve(resolved, it.value, it.key) }
+	}
+
+	private static List filterAncestorTypes(ClassOrInterfaceDeclaration aClass) {
+		return (aClass.implementedTypes + aClass.extendedTypes).stream()
+				.filter { it.nameAsString != aClass.nameAsString } // anti cyclic
+				.collect(Collectors.toList())
 	}
 
 	private List<QualifiedType> resolveAncestorTypes(ResolutionData data,
