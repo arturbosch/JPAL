@@ -8,7 +8,6 @@ import com.github.javaparser.ast.expr.Expression
 import com.github.javaparser.ast.expr.FieldAccessExpr
 import com.github.javaparser.ast.expr.MethodCallExpr
 import com.github.javaparser.ast.expr.SimpleName
-import com.github.javaparser.ast.nodeTypes.NodeWithOptionalScope
 import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName
 import com.github.javaparser.ast.type.ClassOrInterfaceType
 import groovy.transform.CompileStatic
@@ -72,7 +71,7 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 															FieldAccessExpr maybeFieldAccess,
 															CompilationInfo info) {
 		// is access not chained? then it must belong to a name expr
-		SymbolReference symbolReference = nameLevelSolver.resolveNameExprScope(maybeFieldAccess.scope as Optional<Node>, info)
+		SymbolReference symbolReference = nameLevelSolver.resolveNameExprScope(Optional.of(maybeFieldAccess.scope) as Optional<Node>, info)
 		if (symbolReference) {
 			return resolveFieldInTypeScope(symbolReference.qualifiedType, symbol)
 		}
@@ -84,7 +83,7 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 		}
 
 		// loop through field/method accesses
-		symbolReference = asMethodOrFieldChain(maybeFieldAccess.scope, info)
+		symbolReference = asMethodOrFieldChain(Optional.of(maybeFieldAccess.scope), info)
 		if (symbolReference) {
 			def fieldReference = resolveFieldInTypeScope(symbolReference.qualifiedType, symbol)
 			fieldReference.ifPresent {
@@ -127,7 +126,7 @@ final class GlobalClassLevelSymbolSolver extends CallOrAccessAwareSolver impleme
 	}
 
 	private SymbolReference asMethodOrFieldChain(Optional<Expression> scope, CompilationInfo info) {
-		scope.filter { it instanceof NodeWithOptionalScope }
+		scope.filter { it instanceof FieldAccessExpr || it instanceof MethodCallExpr }
 				.filter { it instanceof NodeWithSimpleName }
 				.map { it as NodeWithSimpleName }
 				.map { resolve(it.name, info).orElse(null) }

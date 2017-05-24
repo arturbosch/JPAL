@@ -37,7 +37,7 @@ abstract class CallOrAccessAwareSolver {
 
 	protected static boolean isThisAccess(FieldAccessExpr fieldAccessExpr) {
 		def scope = fieldAccessExpr.scope
-		return !scope.isPresent() || scope.filter { it instanceof ThisExpr }.isPresent()
+		return scope instanceof ThisExpr
 	}
 
 	protected static boolean isThisAccess(MethodCallExpr methodCallExpr) {

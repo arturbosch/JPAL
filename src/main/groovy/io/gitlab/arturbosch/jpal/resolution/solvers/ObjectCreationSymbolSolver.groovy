@@ -32,22 +32,20 @@ final class ObjectCreationSymbolSolver extends CallOrAccessAwareSolver implement
 	}
 
 	Optional<SimpleSymbolReference> resolveInFieldAccess(SimpleName symbol, FieldAccessExpr fieldAccessExpr,
-																 CompilationInfo info) {
-		resolveInScope(symbol, fieldAccessExpr.scope, info)
+														 CompilationInfo info) {
+		resolveInScope(symbol, Optional.of(fieldAccessExpr.scope), info)
 	}
 
 	private Optional<SimpleSymbolReference> resolveInScope(SimpleName symbol,
-																   Optional<Expression> scope,
-																   CompilationInfo info) {
-		scope.filter { it instanceof ObjectCreationExpr }
+														   Optional<Expression> scope,
+														   CompilationInfo info) {
+		return scope.filter { it instanceof ObjectCreationExpr }
 				.map { it as ObjectCreationExpr }
-				.map {
-			new SimpleSymbolReference(symbol, resolver.getQualifiedType(info.data, it.type))
-		}
+				.map { new SimpleSymbolReference(symbol, resolver.getQualifiedType(info.data, it.type)) }
 	}
 
 	Optional<SimpleSymbolReference> resolveInMethodCall(SimpleName symbol, MethodCallExpr methodCallExpr,
-																CompilationInfo info) {
+														CompilationInfo info) {
 		resolveInScope(symbol, methodCallExpr.scope, info)
 	}
 }
