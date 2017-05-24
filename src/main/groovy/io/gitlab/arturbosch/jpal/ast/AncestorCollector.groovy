@@ -55,10 +55,12 @@ class AncestorCollector {
 		def map = new HashMap<ClassOrInterfaceDeclaration, ResolutionData>()
 
 		for (type in types) {
-			storage.getCompilationInfo(type).ifPresent {
-				def declaration = it.getTypeDeclarationByQualifier(type).orElse(null)
-				if (declaration && declaration instanceof ClassOrInterfaceDeclaration) {
-					map.put(declaration as ClassOrInterfaceDeclaration, it.data)
+			if (type.isReference()) {
+				storage.getCompilationInfo(type).ifPresent {
+					def declaration = it.getTypeDeclarationByQualifier(type).orElse(null)
+					if (declaration && declaration instanceof ClassOrInterfaceDeclaration) {
+						map.put(declaration as ClassOrInterfaceDeclaration, it.data)
+					}
 				}
 			}
 		}
