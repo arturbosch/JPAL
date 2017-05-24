@@ -79,7 +79,7 @@ final class MethodLevelVariableSymbolSolver implements Solver {
 
 	Optional<ParameterSymbolReference> resolveSymbolInParameters(SimpleName symbol,
 																 MethodDeclaration method, CompilationInfo info) {
-		def parameters = method.getNodesByType(Parameter.class)
+		def parameters = method.getChildNodesByType(Parameter.class)
 		def maybe = parameters.find { it.name == symbol }
 		if (maybe) {
 			def qualifiedType = resolver.getQualifiedType(info.data, maybe.type)

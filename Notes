@@ -10,7 +10,7 @@ Old methods from CompilationTree, need verification
 	static int countMethodInvocations(QualifiedType qualifiedType, Collection<String> methods) {
 		int calls = 0
 		findReferencesFor(qualifiedType, {
-			calls = ASTHelper.getNodesByType(it, MethodCallExpr.class)
+			calls = ASTHelper.getChildNodesByType(it, MethodCallExpr.class)
 					.stream()
 					.filter { methods.contains(it.name) }
 					.mapToInt { 1 }

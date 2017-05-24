@@ -12,7 +12,7 @@ class LocaleVariableHelperTest extends Specification {
 	def "find locale variables"() {
 		given: ""
 		def unit = Helper.compile(Helper.DUMMY)
-		def methods = unit.getNodesByType(MethodDeclaration.class)
+		def methods = unit.getChildNodesByType(MethodDeclaration.class)
 		when: "searching for locale variables within methods"
 		def locales = LocaleVariableHelper.find(methods)
 		then:

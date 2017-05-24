@@ -10,7 +10,7 @@ import spock.lang.Specification
 class MethodHelperTest extends Specification {
 
 	private List<MethodDeclaration> methodsWithinUnit =
-			Helper.compile(Helper.DUMMY).getNodesByType(MethodDeclaration.class)
+			Helper.compile(Helper.DUMMY).getChildNodesByType(MethodDeclaration.class)
 
 	def "extract parameters from body declarations"() {
 		given:
@@ -47,7 +47,7 @@ class MethodHelperTest extends Specification {
 
 	def "filter anonymous methods"() {
 		given:
-		def methods = Helper.compile(Helper.ANONYMOUS_DUMMY).getNodesByType(MethodDeclaration.class)
+		def methods = Helper.compile(Helper.ANONYMOUS_DUMMY).getChildNodesByType(MethodDeclaration.class)
 		when:
 		def filteredMethods = MethodHelper.filterAnonymousMethods(methods)
 		then:

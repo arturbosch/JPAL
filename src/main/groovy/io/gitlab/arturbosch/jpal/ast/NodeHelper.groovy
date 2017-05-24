@@ -41,7 +41,7 @@ final class NodeHelper {
 	 * @return list of method declarations
 	 */
 	static List<MethodDeclaration> findMethods(Node n) {
-		return Validate.notNull(n).getNodesByType(MethodDeclaration.class)
+		return Validate.notNull(n).getChildNodesByType(MethodDeclaration.class)
 	}
 
 	/**
@@ -61,7 +61,7 @@ final class NodeHelper {
 	 * @return list of field declarations
 	 */
 	static List<FieldDeclaration> findFields(Node n) {
-		return Validate.notNull(n).getNodesByType(FieldDeclaration.class)
+		return Validate.notNull(n).getChildNodesByType(FieldDeclaration.class)
 	}
 
 	/**
@@ -70,7 +70,7 @@ final class NodeHelper {
 	 * @return set of strings
 	 */
 	static Set<String> findNamesOfInnerClasses(Node n) {
-		return Validate.notNull(n).getNodesByType(ClassOrInterfaceDeclaration.class).stream()
+		return Validate.notNull(n).getChildNodesByType(ClassOrInterfaceDeclaration.class).stream()
 				.filter { it.parentNode instanceof Optional<ClassOrInterfaceDeclaration> }
 				.map { it.nameAsString }
 				.collect(Collectors.toSet())

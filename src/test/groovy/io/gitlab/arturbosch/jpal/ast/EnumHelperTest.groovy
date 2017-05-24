@@ -11,7 +11,7 @@ class EnumHelperTest extends Specification {
 
 	def "create signature for enums"() {
 		when:
-		def enumDecl = Helper.compile(Helper.BASE_PATH.resolve("ClassSignatureDummy.java")).getNodesByType(EnumDeclaration.class)[0]
+		def enumDecl = Helper.compile(Helper.BASE_PATH.resolve("ClassSignatureDummy.java")).getChildNodesByType(EnumDeclaration.class)[0]
 		def signature = EnumHelper.createSignature(enumDecl)
 		def fullSignature = EnumHelper.createFullSignature(enumDecl)
 

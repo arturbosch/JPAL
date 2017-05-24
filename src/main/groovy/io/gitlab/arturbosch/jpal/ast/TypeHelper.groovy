@@ -106,7 +106,7 @@ final class TypeHelper {
 	static boolean isTypePresentInCompilationUnit(CompilationUnit unit, QualifiedType qualifiedType) {
 		Validate.notNull(unit)
 		def shortName = Validate.notNull(qualifiedType).shortName()
-		def types = unit.getNodesByType(ClassOrInterfaceType.class)
+		def types = unit.getChildNodesByType(ClassOrInterfaceType.class)
 		return types.any { it.nameAsString == shortName }
 	}
 
@@ -148,7 +148,7 @@ final class TypeHelper {
 	}
 
 	private static Map<QualifiedType, TypeDeclaration> findInnerTypes(Node n, String packagePlusMain) {
-		def types = Validate.notNull(n).getNodesByType(TypeDeclaration.class)
+		def types = Validate.notNull(n).getChildNodesByType(TypeDeclaration.class)
 		return types.stream().filter { it.parentNode instanceof Optional<TypeDeclaration> }
 				.collect()
 				.collectEntries {
@@ -167,7 +167,7 @@ final class TypeHelper {
 	 */
 	static List<QualifiedType> findAllUsedTypes(CompilationUnit unit, TypeSolver resolver = null) {
 		def resolutionData = ResolutionData.of(unit)
-		return unit.getNodesByType(ClassOrInterfaceType.class)
+		return unit.getChildNodesByType(ClassOrInterfaceType.class)
 				.unique { a, b -> a.nameAsString != b.nameAsString ? 1 : 0 }
 				.stream()
 				.map { withOuterClasses(it) }

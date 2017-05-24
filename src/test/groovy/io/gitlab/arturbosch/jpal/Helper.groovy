@@ -36,18 +36,18 @@ class Helper {
 	}
 
 	static MethodDeclaration nth(CompilationUnit unit, int n) {
-		return unit.getNodesByType(MethodDeclaration.class).get(n)
+		return unit.getChildNodesByType(MethodDeclaration.class).get(n)
 	}
 
 	static ClassOrInterfaceDeclaration firstClass(CompilationUnit unit) {
-		return unit.getNodesByType(ClassOrInterfaceDeclaration.class).first()
+		return unit.getChildNodesByType(ClassOrInterfaceDeclaration.class).first()
 	}
 
 	static ClassOrInterfaceDeclaration nthInnerClass(CompilationUnit unit, int n) {
-		return firstClass(unit).getNodesByType(ClassOrInterfaceDeclaration.class)[n]
+		return firstClass(unit).getChildNodesByType(ClassOrInterfaceDeclaration.class)[n]
 	}
 
 	static FieldDeclaration nth(ClassOrInterfaceDeclaration clazz, int n) {
-		return clazz.getNodesByType(FieldDeclaration.class).get(n)
+		return clazz.getChildNodesByType(FieldDeclaration.class).get(n)
 	}
 }

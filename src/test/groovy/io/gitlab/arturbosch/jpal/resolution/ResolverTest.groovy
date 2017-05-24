@@ -26,7 +26,7 @@ class ResolverTest extends Specification {
 
 	def "ResolveType"() {
 		given: "all symbols of dummy class"
-		def symbols = info.unit.getNodesByType(SimpleName.class)
+		def symbols = info.unit.getChildNodesByType(SimpleName.class)
 		println(symbols)
 		when: "resolving the symbols"
 		def references = symbols.collect { resolver.resolve(it, info) }
@@ -40,7 +40,7 @@ class ResolverTest extends Specification {
 	@Ignore
 	def "performance"() {
 		given: "symbols"
-		def symbols = info.unit.getNodesByType(SimpleName)
+		def symbols = info.unit.getChildNodesByType(SimpleName)
 
 		when: "running collect symbols 100 times"
 		def times = 100

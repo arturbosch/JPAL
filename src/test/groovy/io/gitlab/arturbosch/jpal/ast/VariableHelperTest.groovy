@@ -15,9 +15,9 @@ class VariableHelperTest extends Specification {
 
 	def "fields to jpal variables"() {
 		given:
-		def fields = unit.getNodesByType(FieldDeclaration.class)
-		def params = unit.getNodesByType(Parameter.class)
-		def locales = unit.getNodesByType(VariableDeclarationExpr.class)
+		def fields = unit.getChildNodesByType(FieldDeclaration.class)
+		def params = unit.getChildNodesByType(Parameter.class)
+		def locales = unit.getChildNodesByType(VariableDeclarationExpr.class)
 		when:
 		def jpalVars = VariableHelper.toJpalFromFields(fields)
 		def jpalVars2 = VariableHelper.toJpalFromParameters(params)

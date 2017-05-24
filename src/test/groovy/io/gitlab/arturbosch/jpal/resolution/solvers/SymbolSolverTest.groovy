@@ -20,7 +20,7 @@ class SymbolSolverTest extends Specification {
 
 	def "ResolutionDummy - method 1 - all variables"() {
 		given: "compilation info for a class"
-		def symbols = Helper.nth(info.unit, 0).body.get().getNodesByType(SimpleName.class)
+		def symbols = Helper.nth(info.unit, 0).body.get().getChildNodesByType(SimpleName.class)
 
 		when: "resolving all symbols"
 		def symbolReferences = symbols.collect { solver.resolve(it, info).get() }
@@ -32,7 +32,7 @@ class SymbolSolverTest extends Specification {
 
 	def "ResolutionDummy - method 2 - all variables same name with this"() {
 		given: "compilation info for a class"
-		def symbols = Helper.nth(info.unit, 1).body.get().getNodesByType(SimpleName.class)
+		def symbols = Helper.nth(info.unit, 1).body.get().getChildNodesByType(SimpleName.class)
 
 		when: "resolving all symbols"
 		def symbolReferences = symbols.collect { solver.resolve(it, info).get() }
@@ -44,7 +44,7 @@ class SymbolSolverTest extends Specification {
 
 	def "ResolutionDummy - method 3 - method calls and field accesses, no chains"() {
 		given: "compilation info for a class"
-		def symbols = Helper.nth(info.unit, 2).body.get().getNodesByType(SimpleName.class)
+		def symbols = Helper.nth(info.unit, 2).body.get().getChildNodesByType(SimpleName.class)
 
 		when: "resolving all symbols"
 		def symbolReferences = symbols.collect { solver.resolve(it, info).get() }
@@ -61,7 +61,7 @@ class SymbolSolverTest extends Specification {
 
 	def "ResolutionDummy - method 4 - method/field chaining"() {
 		given: "compilation info for a class"
-		def symbols = Helper.nth(info.unit, 3).body.get().getNodesByType(SimpleName.class)
+		def symbols = Helper.nth(info.unit, 3).body.get().getChildNodesByType(SimpleName.class)
 
 		when: "resolving all symbols"
 		def symbolReferences = symbols.collect { solver.resolve(it, info).get() }
@@ -76,7 +76,7 @@ class SymbolSolverTest extends Specification {
 
 	def "ResolutionDummy - method 5 - very long chains"() {
 		given: "compilation info for a class"
-		def symbols = Helper.nth(info.unit, 4).body.get().getNodesByType(SimpleName.class)
+		def symbols = Helper.nth(info.unit, 4).body.get().getChildNodesByType(SimpleName.class)
 
 		when: "resolving all symbols"
 		def symbolReferences = symbols.collect { solver.resolve(it, info).get() }
@@ -90,7 +90,7 @@ class SymbolSolverTest extends Specification {
 
 	def "ResolutionDummy - method 6 - simple inheritance"() {
 		given: "compilation info for a class with inheritance"
-		def symbols = Helper.nth(info.unit, 5).body.get().getNodesByType(SimpleName.class)
+		def symbols = Helper.nth(info.unit, 5).body.get().getChildNodesByType(SimpleName.class)
 
 		when: "resolving all symbols"
 		def symbolReferences = symbols.collect { solver.resolve(it, info).get() }
@@ -102,7 +102,7 @@ class SymbolSolverTest extends Specification {
 
 	def "ResolutionDummy - method 7 - builder pattern"() {
 		when: "resolving all symbols"
-		def symbol = Helper.nth(info.unit, 6).body.get().getNodesByType(SimpleName.class)
+		def symbol = Helper.nth(info.unit, 6).body.get().getChildNodesByType(SimpleName.class)
 				.grep { it.identifier == "build" }[0]
 		def reference = solver.resolve(symbol, info).get() as WithPreviousSymbolReference
 		then:
@@ -111,7 +111,7 @@ class SymbolSolverTest extends Specification {
 
 	def "loop through previous symbol references"() {
 		when:
-		def symbol = Helper.nth(info.unit, 4).body.get().getNodesByType(SimpleName.class)
+		def symbol = Helper.nth(info.unit, 4).body.get().getChildNodesByType(SimpleName.class)
 				.grep { it.identifier == "getAnInt" }[0]
 		def reference = solver.resolve(symbol, info).get() as WithPreviousSymbolReference
 		then:
