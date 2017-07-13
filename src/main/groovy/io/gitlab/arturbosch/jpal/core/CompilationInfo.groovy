@@ -121,7 +121,7 @@ class CompilationInfo implements Processable {
 	 */
 	Optional<TypeDeclaration> getTypeDeclarationByQualifier(QualifiedType qualifier) {
 		if (qualifiedType == qualifier) Optional.of(mainType)
-		else Optional.ofNullable(innerClasses.find { it.key == qualifier }.value)
+		else Optional.ofNullable(innerClasses.find { it.key == qualifier }).map { it.value }
 	}
 
 	@Override

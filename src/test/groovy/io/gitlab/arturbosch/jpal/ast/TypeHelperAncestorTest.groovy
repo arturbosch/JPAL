@@ -6,6 +6,7 @@ import io.gitlab.arturbosch.jpal.core.JPAL
 import io.gitlab.arturbosch.jpal.resolution.Resolver
 import spock.lang.Specification
 
+import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
@@ -31,7 +32,7 @@ class TypeHelperAncestorTest extends Specification {
 		qualifiedTypes.find { it.shortName == "SubAncestorType" }
 	}
 
-	def "test"() {
+	def "false positive cyclic inheritance"() {
 		given: "class which extends class with same name: ZipEntry extends java.util.ZipEntry"
 		def path = Paths.get(getClass().getResource("/invalid").path)
 		def file = path.resolve("ZipEntry.java")
@@ -44,6 +45,20 @@ class TypeHelperAncestorTest extends Specification {
 		then: "cyclic names are not resolved"
 		qualifiedTypes.size() == 1
 		qualifiedTypes.find { it.shortName == "Cloneable" }
+	}
 
+	def "searching for qualified type in inner classes should map to declaration after optional"() {
+		given:
+		def path = Paths.get(getClass().getResource("/invalid").path)
+		def file = path.resolve("ErrorWhenNotEqualFactory.java")
+		def storage = JPAL.new(path)
+		def info = storage.getCompilationInfo(file).get()
+		def resolver = new Resolver(storage)
+		def clazz = info.mainType as ClassOrInterfaceDeclaration
+		when: "resolving"
+		def qualifiedTypes = TypeHelper.findAllAncestors(clazz, resolver, info)
+		then: "no NPE appears"
+		qualifiedTypes.size() == 1
+		qualifiedTypes.find { it.shortName == "AssertionErrorFactory" }
 	}
 }
