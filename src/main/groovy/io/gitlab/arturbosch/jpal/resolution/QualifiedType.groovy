@@ -16,7 +16,7 @@ import io.gitlab.arturbosch.jpal.internal.Validate
 @CompileStatic
 @SuppressWarnings("UnnecessaryQualifiedReference")
 // Groovy Compiler Bug?
-class QualifiedType {
+class QualifiedType implements Comparable<QualifiedType> {
 
 	static final QualifiedType UNKNOWN = new QualifiedType("UNKNOWN", QualifiedType.TypeToken.UNKNOWN)
 	static final QualifiedType VOID = new QualifiedType("Void", QualifiedType.TypeToken.JAVA_REFERENCE)
@@ -33,7 +33,7 @@ class QualifiedType {
 	 * Unknown types means that the resolver could not retrieve the qualified type.
 	 */
 	@CompileStatic
-	enum TypeToken {
+	enum TypeToken implements Comparable<TypeToken> {
 		PRIMITIVE, BOXED_PRIMITIVE, REFERENCE, JAVA_REFERENCE, UNKNOWN
 	}
 
@@ -145,6 +145,12 @@ class QualifiedType {
 		return false
 	}
 
+	@Override
+	int compareTo(QualifiedType o) {
+		return name <=> o.name
+	}
+
+	@Override
 	boolean equals(o) {
 		if (this.is(o)) return true
 		if (getClass() != o.class) return false
@@ -159,6 +165,7 @@ class QualifiedType {
 		return true
 	}
 
+	@Override
 	int hashCode() {
 		int result
 		result = (name != null ? name.hashCode() : 0)

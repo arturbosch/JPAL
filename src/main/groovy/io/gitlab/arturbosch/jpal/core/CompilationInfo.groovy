@@ -21,7 +21,7 @@ import java.nio.file.Paths
  * @author artur
  */
 @CompileStatic
-class CompilationInfo implements Processable {
+class CompilationInfo implements Processable, Comparable<CompilationInfo> {
 
 	final QualifiedType qualifiedType
 	final CompilationUnit unit
@@ -129,6 +129,11 @@ class CompilationInfo implements Processable {
 		return "CompilationInfo{" +
 				"qualifiedType=" + qualifiedType +
 				'}'
+	}
+
+	@Override
+	int compareTo(CompilationInfo o) {
+		return qualifiedType <=> o.qualifiedType
 	}
 
 	@CompileStatic

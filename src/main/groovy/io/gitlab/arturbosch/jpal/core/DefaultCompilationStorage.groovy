@@ -106,8 +106,8 @@ class DefaultCompilationStorage implements CompilationStorage {
 	}
 
 	@Override
-	List<CompilationInfo> getAllCompilationInfo() {
-		return Collections.unmodifiableList(typeCache.values())
+	Set<CompilationInfo> getAllCompilationInfo() {
+		return Collections.unmodifiableSet(typeCache.values())
 	}
 
 	@Override

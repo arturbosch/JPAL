@@ -17,7 +17,7 @@ interface CompilationStorage {
 	/**
 	 * @return retrieves all stores compilation info's
 	 */
-	List<CompilationInfo> getAllCompilationInfo()
+	Set<CompilationInfo> getAllCompilationInfo()
 
 	/**
 	 * Maybe a compilation unit for given path is found.
@@ -34,7 +34,6 @@ interface CompilationStorage {
 	 * @return optional of compilation unit
 	 */
 	Optional<CompilationInfo> getCompilationInfo(QualifiedType qualifiedType)
-
 
 
 }

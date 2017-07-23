@@ -2,7 +2,8 @@ package io.gitlab.arturbosch.jpal.internal
 
 import groovy.transform.CompileStatic
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentNavigableMap
+import java.util.concurrent.ConcurrentSkipListMap
 
 /**
  * @author Artur
@@ -10,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 @CompileStatic
 final class SmartCache<K, V> {
 
-	private final Map<K, V> cache = new ConcurrentHashMap<>()
+	private final ConcurrentNavigableMap<K, V> cache = new ConcurrentSkipListMap<>()
 
 	private final V defaultValue
 
@@ -40,17 +41,8 @@ final class SmartCache<K, V> {
 		cache.keySet()
 	}
 
-	List<V> values() {
-		cache.values().toList()
-	}
-
-	/**
-	 * Internal representation of this cache.
-	 *
-	 * @return Internal representation of this cache
-	 */
-	Map<K, V> getInternalCache() {
-		return cache
+	Set<V> values() {
+		cache.values().toSet()
 	}
 
 }
