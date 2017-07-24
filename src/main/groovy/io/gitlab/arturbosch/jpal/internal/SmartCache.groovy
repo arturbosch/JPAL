@@ -41,8 +41,8 @@ final class SmartCache<K, V> {
 		cache.keySet()
 	}
 
-	Set<V> values() {
-		cache.values().toSet()
+	Collection<V> values() {
+		cache.values()
 	}
 
 }
