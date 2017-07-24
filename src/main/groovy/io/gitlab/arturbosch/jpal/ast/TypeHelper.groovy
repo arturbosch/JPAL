@@ -7,6 +7,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.TypeDeclaration
 import com.github.javaparser.ast.type.ClassOrInterfaceType
 import com.github.javaparser.ast.type.Type
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter
 import com.github.javaparser.utils.Pair
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.core.CompilationInfo
@@ -167,12 +168,26 @@ final class TypeHelper {
 	 */
 	static List<QualifiedType> findAllUsedTypes(CompilationUnit unit, TypeSolver resolver = null) {
 		def resolutionData = ResolutionData.of(unit)
-		return unit.getChildNodesByType(ClassOrInterfaceType.class)
-				.unique { a, b -> a.nameAsString != b.nameAsString ? 1 : 0 }
-				.stream()
+		return new FindAllUsedTypesCollector().collect(unit).stream()
 				.map { withOuterClasses(it) }
 				.map { (resolver ? new TypeSolver() : resolver).getQualifiedType(resolutionData, it) }
 				.collect(Collectors.toList())
+	}
+
+	static class FindAllUsedTypesCollector extends VoidVisitorAdapter {
+
+		private Map<String, ClassOrInterfaceType> types = new HashMap<>()
+
+		Collection<ClassOrInterfaceType> collect(CompilationUnit unit) {
+			visit(unit, null)
+			return types.values()
+		}
+
+		@Override
+		void visit(ClassOrInterfaceType n, Object arg) {
+			if (!types.containsKey(n.nameAsString)) types.put(n.nameAsString, n)
+			super.visit(n, arg)
+		}
 	}
 
 	private static ClassOrInterfaceType withOuterClasses(ClassOrInterfaceType type) {
@@ -198,7 +213,9 @@ final class TypeHelper {
 	static Set<QualifiedType> findAllAncestors(ClassOrInterfaceDeclaration aClass, Resolver resolver, CompilationInfo info = null) {
 		ResolutionData data = info?.data ?:
 				ResolutionData.of(NodeHelper.findDeclaringCompilationUnit(aClass)
-						.orElseThrow { new CompilationUnitNotFoundError("Resolving all ancestors needs compilation unit of given class!") })
+						.orElseThrow {
+					new CompilationUnitNotFoundError("Resolving all ancestors needs compilation unit of given class!")
+				})
 
 		def collector = new AncestorCollector(resolver)
 		return collector.getAll(data, aClass)
