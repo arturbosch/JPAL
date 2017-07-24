@@ -5,7 +5,6 @@ import com.github.javaparser.ast.body.TypeDeclaration
 import com.github.javaparser.ast.type.ClassOrInterfaceType
 import com.github.javaparser.ast.type.Type
 import groovy.transform.CompileStatic
-import io.gitlab.arturbosch.jpal.ast.NodeHelper
 import io.gitlab.arturbosch.jpal.internal.Printer
 import io.gitlab.arturbosch.jpal.internal.Validate
 
@@ -26,8 +25,8 @@ class InnerClassesHandler {
 		def types = unit.getTypes()
 		if (types.size() >= 1) {
 			mainType = types[0]
-			innerClassesNames = NodeHelper.findNamesOfInnerClasses(mainType)
 			outerClassName = mainType.name
+			innerClassesNames = new InnerClassesNameCollector(outerClassName).start(mainType)
 		} else {
 			throw new NoClassesException("Given compilation unit has no type declarations!")
 		}
