@@ -13,7 +13,7 @@ import spock.lang.Specification
 class ResolverTest extends Specification {
 
 	private path = Helper.BASE_PATH.resolve("resolving/SolveTypeDummy.java")
-	private storage = JPAL.new(path)
+	private storage = JPAL.newInstance(path)
 	private info = storage.getCompilationInfo(path).get()
 	private resolver = new Resolver(storage)
 

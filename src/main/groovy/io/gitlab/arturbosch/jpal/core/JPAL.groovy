@@ -24,9 +24,9 @@ final class JPAL {
 	 * @param pathFilters filters to use when compiling java files
 	 * @return the storage
 	 */
-	static <T> CompilationStorage 'new'(Path root,
-										CompilationInfoProcessor<T> processor = null,
-										List<Pattern> pathFilters = Collections.emptyList()) {
+	static <T> CompilationStorage newInstance(Path root,
+											  CompilationInfoProcessor<T> processor = null,
+											  List<Pattern> pathFilters = Collections.emptyList()) {
 		Validate.isTrue(root != null, "Project path must not be null!")
 		return new DefaultCompilationStorage(processor, pathFilters).initialize(root)
 	}

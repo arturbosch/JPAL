@@ -17,7 +17,7 @@ class CompilationStorageTest extends Specification {
 
 	def "domain tests"() {
 		given:
-		def storage = JPAL.new(Helper.BASE_PATH)
+		def storage = JPAL.newInstance(Helper.BASE_PATH)
 
 		when: "retrieving all compilation info"
 		def info = storage.allCompilationInfo
@@ -48,7 +48,7 @@ class CompilationStorageTest extends Specification {
 
 	def "compilation storage with processor test"() {
 		given: "compilation storage with processor"
-		def storage = JPAL.new(Helper.BASE_PATH, new CompilationInfoProcessor<String>() {
+		def storage = JPAL.newInstance(Helper.BASE_PATH, new CompilationInfoProcessor<String>() {
 			@Override
 			String process(CompilationInfo info) {
 				return "nice"

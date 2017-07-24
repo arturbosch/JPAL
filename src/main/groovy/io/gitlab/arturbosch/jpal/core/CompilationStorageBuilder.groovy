@@ -56,7 +56,7 @@ final class CompilationStorageBuilder {
 	/**
 	 * Specifies a processor which should be run after a compilation info is created.
 	 *
-	 * @param processor the processort to run on compilation info's
+	 * @param processor the processor to run on compilation info's
 	 * @return this builder
 	 */
 	CompilationStorageBuilder withProcessor(CompilationInfoProcessor processor) {
@@ -74,7 +74,7 @@ final class CompilationStorageBuilder {
 						JPAL.initializedUpdatable(root, processor) :
 						JPAL.updatable(processor) :
 				root != null ?
-						JPAL.new(root, processor) : null
+						JPAL.newInstance(root, processor) : null
 		if (storage == null) throw new IllegalStateException("Provided configuration was invalid!")
 		return storage
 	}

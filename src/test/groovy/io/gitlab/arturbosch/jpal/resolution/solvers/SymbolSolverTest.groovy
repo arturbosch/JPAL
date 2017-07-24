@@ -14,7 +14,7 @@ import java.util.stream.Collectors
  */
 class SymbolSolverTest extends Specification {
 
-	def storage = JPAL.new(Helper.BASE_PATH)
+	def storage = JPAL.newInstance(Helper.BASE_PATH)
 	def solver = new SymbolSolver(storage)
 	def info = storage.getCompilationInfo(Helper.RESOLVING_DUMMY).get()
 

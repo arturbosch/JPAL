@@ -6,7 +6,6 @@ import io.gitlab.arturbosch.jpal.core.JPAL
 import io.gitlab.arturbosch.jpal.resolution.Resolver
 import spock.lang.Specification
 
-import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
@@ -17,7 +16,7 @@ class TypeHelperAncestorTest extends Specification {
 	def "find all ancestors of a class"() {
 		given: "a class with ancestors"
 		def path = Helper.BASE_PATH.resolve("resolving/AncestorResolveType.java")
-		def storage = JPAL.new(Helper.BASE_PATH.resolve("resolving"))
+		def storage = JPAL.newInstance(Helper.BASE_PATH.resolve("resolving"))
 		def info = storage.getCompilationInfo(path).get()
 		def resolver = new Resolver(storage)
 		def clazz = info.mainType as ClassOrInterfaceDeclaration
@@ -36,7 +35,7 @@ class TypeHelperAncestorTest extends Specification {
 		given: "class which extends class with same name: ZipEntry extends java.util.ZipEntry"
 		def path = Paths.get(getClass().getResource("/invalid").path)
 		def file = path.resolve("ZipEntry.java")
-		def storage = JPAL.new(path)
+		def storage = JPAL.newInstance(path)
 		def info = storage.getCompilationInfo(file).get()
 		def resolver = new Resolver(storage)
 		def clazz = info.mainType as ClassOrInterfaceDeclaration
@@ -51,7 +50,7 @@ class TypeHelperAncestorTest extends Specification {
 		given:
 		def path = Paths.get(getClass().getResource("/invalid").path)
 		def file = path.resolve("ErrorWhenNotEqualFactory.java")
-		def storage = JPAL.new(path)
+		def storage = JPAL.newInstance(path)
 		def info = storage.getCompilationInfo(file).get()
 		def resolver = new Resolver(storage)
 		def clazz = info.mainType as ClassOrInterfaceDeclaration

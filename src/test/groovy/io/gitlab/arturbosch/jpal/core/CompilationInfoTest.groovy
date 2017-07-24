@@ -12,7 +12,7 @@ class CompilationInfoTest extends Specification {
 	CompilationStorage storage
 
 	def setup() {
-		storage = JPAL.new(Helper.BASE_PATH)
+		storage = JPAL.newInstance(Helper.BASE_PATH)
 	}
 
 	def "can set and retrieve processor"() {

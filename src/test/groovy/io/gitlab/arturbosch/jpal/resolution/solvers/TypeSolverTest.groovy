@@ -8,7 +8,6 @@ import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import io.gitlab.arturbosch.jpal.core.JPAL
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import io.gitlab.arturbosch.jpal.resolution.ResolutionData
-import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
 import spock.lang.Specification
 
 /**
@@ -20,7 +19,7 @@ class TypeSolverTest extends Specification {
 	TypeSolver resolver
 
 	def setup() {
-		storage = JPAL.new(Helper.BASE_PATH)
+		storage = JPAL.newInstance(Helper.BASE_PATH)
 		resolver = new TypeSolver(storage)
 	}
 
