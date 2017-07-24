@@ -8,8 +8,6 @@ import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import io.gitlab.arturbosch.jpal.resolution.ResolutionData
 import io.gitlab.arturbosch.jpal.resolution.Resolver
 
-import java.util.stream.Collectors
-
 /**
  * Resolves and collects recursively all qualified types of the sub classes of starting class.
  *
@@ -33,25 +31,35 @@ class AncestorCollector {
 	}
 
 	private void resolve(Set<QualifiedType> resolved, ResolutionData data, ClassOrInterfaceDeclaration aClass) {
-		List<ClassOrInterfaceType> types = filterAncestorTypes(aClass)
-		def ancestorTypes = resolveAncestorTypes(data, types)
+		def ancestorTypes = resolveAncestorTypes(aClass, data)
 		def ancestors = extractAncestorClasses(ancestorTypes)
 		resolved.addAll(ancestorTypes)
-		ancestors.each { resolve(resolved, it.value, it.key) }
+		for (Map.Entry<ClassOrInterfaceDeclaration, ResolutionData> entry : ancestors) {
+			resolve(resolved, entry.value, entry.key)
+		}
 	}
 
-	private static List filterAncestorTypes(ClassOrInterfaceDeclaration aClass) {
-		return (aClass.implementedTypes + aClass.extendedTypes).stream()
-				.filter { it.nameAsString != aClass.nameAsString } // anti cyclic
-				.collect(Collectors.toList())
+	private Set<QualifiedType> resolveAncestorTypes(ClassOrInterfaceDeclaration aClass,
+													ResolutionData data) {
+		Set<QualifiedType> result = new HashSet<>()
+		def className = aClass.nameAsString
+		addNonCyclicTypes(aClass.implementedTypes, className, data, result)
+		addNonCyclicTypes(aClass.extendedTypes, className, data, result)
+		return result
 	}
 
-	private List<QualifiedType> resolveAncestorTypes(ResolutionData data,
-													 List<ClassOrInterfaceType> types) {
-		return types.collect { typeSolver.resolveType(it, data) }
+	private void addNonCyclicTypes(List<ClassOrInterfaceType> types,
+								   String className,
+								   ResolutionData data,
+								   Set<QualifiedType> result) {
+		for (ClassOrInterfaceType type : types) {
+			if (type.nameAsString != className) { // anti cyclic
+				result.add(typeSolver.resolveType(type, data))
+			}
+		}
 	}
 
-	private Map<ClassOrInterfaceDeclaration, ResolutionData> extractAncestorClasses(List<QualifiedType> types) {
+	private Map<ClassOrInterfaceDeclaration, ResolutionData> extractAncestorClasses(Set<QualifiedType> types) {
 		def map = new HashMap<ClassOrInterfaceDeclaration, ResolutionData>()
 
 		for (type in types) {
