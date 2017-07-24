@@ -32,13 +32,13 @@ class CompilationInfo implements Processable, Comparable<CompilationInfo> {
 	final Map<QualifiedType, TypeDeclaration> innerClasses
 
 	/**
-	 * Are set after creation of all compilation units as after that point only
-	 * is resolution of star imports possible.
+	 * Are set after creation of all compilation units because
+	 * only at that point resolution of star imports is possible.
 	 */
-	private List<QualifiedType> usedTypes
+	private Set<QualifiedType> usedTypes
 
-	List<QualifiedType> getUsedTypes() {
-		return usedTypes
+	Set<QualifiedType> getUsedTypes() {
+		return Collections.unmodifiableSet(usedTypes)
 	}
 
 	/**
@@ -72,7 +72,7 @@ class CompilationInfo implements Processable, Comparable<CompilationInfo> {
 		this.unit = unit
 		this.path = path
 		this.relativePath = relativizePath(path, unit)
-		this.usedTypes = Collections.emptyList()
+		this.usedTypes = Collections.emptySet()
 		this.data = ResolutionData.of(unit)
 	}
 
@@ -89,12 +89,14 @@ class CompilationInfo implements Processable, Comparable<CompilationInfo> {
 		this.usedTypes = replaceQualifiedTypesOfInnerClasses(usedTypes, innerClasses.keySet())
 	}
 
-	private static List<QualifiedType> replaceQualifiedTypesOfInnerClasses(List<QualifiedType> types,
-																		   Set<QualifiedType> innerClasses) {
-		types.collect { QualifiedType type ->
-			def find = innerClasses.find { sameNameAndPackage(it, type) }
-			if (find) find else type
+	private static Set<QualifiedType> replaceQualifiedTypesOfInnerClasses(Set<QualifiedType> types,
+																		  Set<QualifiedType> innerClasses) {
+		def set = new HashSet<QualifiedType>()
+		for (QualifiedType type : types) {
+			def found = innerClasses.find { sameNameAndPackage(it, type) }
+			if (found) set.add(found) else set.add(type)
 		}
+		return set
 	}
 
 	private static boolean sameNameAndPackage(QualifiedType first, QualifiedType second) {

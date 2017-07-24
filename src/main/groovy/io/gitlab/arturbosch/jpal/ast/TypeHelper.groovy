@@ -166,12 +166,12 @@ final class TypeHelper {
 	 * @param resolver use given type solver for qualified types or build one if null
 	 * @return a set of qualified types
 	 */
-	static List<QualifiedType> findAllUsedTypes(CompilationUnit unit, TypeSolver resolver = null) {
+	static Set<QualifiedType> findAllUsedTypes(CompilationUnit unit, TypeSolver resolver = null) {
 		def resolutionData = ResolutionData.of(unit)
 		return new FindAllUsedTypesCollector().collect(unit).stream()
 				.map { withOuterClasses(it) }
 				.map { (resolver ? new TypeSolver() : resolver).getQualifiedType(resolutionData, it) }
-				.collect(Collectors.toList())
+				.collect(Collectors.toSet())
 	}
 
 	static class FindAllUsedTypesCollector extends VoidVisitorAdapter {
