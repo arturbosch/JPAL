@@ -1,5 +1,6 @@
 package io.gitlab.arturbosch.jpal.internal
 
+import com.github.javaparser.printer.PrettyPrinter
 import com.github.javaparser.printer.PrettyPrinterConfiguration
 
 /**
@@ -7,8 +8,14 @@ import com.github.javaparser.printer.PrettyPrinterConfiguration
  */
 final class Printer {
 
-	public static final PrettyPrinterConfiguration NO_COMMENTS =
+	static final PrettyPrinterConfiguration NO_COMMENTS =
 			new PrettyPrinterConfiguration().setPrintComments(false)
 
+	static final PrettyPrinter PRETTY_PRINTER = new PrettyPrinter(NO_COMMENTS)
+
 	private Printer() {}
+
+	static String toString(com.github.javaparser.ast.Node node) {
+		return PRETTY_PRINTER.print(node)
+	}
 }

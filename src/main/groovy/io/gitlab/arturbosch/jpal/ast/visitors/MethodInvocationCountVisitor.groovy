@@ -37,8 +37,8 @@ class MethodInvocationCountVisitor extends VoidVisitorAdapter {
 		if (searchedName.isEmpty()) {
 			count++
 		} else {
-			n.scope.map { it.toString(Printer.NO_COMMENTS) }
-					.filter { (it == searchedName) }
+			n.scope.map { Printer.toString(it) }
+					.filter { it == searchedName }
 					.ifPresent { count++ }
 		}
 		super.visit(n, arg)
