@@ -10,6 +10,16 @@ import java.nio.file.Path
 interface CompilationStorage {
 
 	/**
+	 * @return true if root package is the default package 'default.'
+	 */
+	boolean isDefaultPackageRootPackage()
+
+	/**
+	 * @return the root package determined by all compiled units
+	 */
+	String getRootPackageName()
+
+	/**
 	 * @return retrieves all stored qualified type keys
 	 */
 	Set<QualifiedType> getAllQualifiedTypes()

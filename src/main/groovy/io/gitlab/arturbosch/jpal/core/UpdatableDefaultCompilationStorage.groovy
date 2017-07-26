@@ -43,18 +43,28 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 			}, threadPool)
 		}
 
+		if (relocates.size() >= allCompilationInfo.size()) {
+			determineRootPackageName()
+		}
+
 		return awaitAll(futures)
 	}
 
 	@Override
 	List<CompilationInfo> updateCompilationInfo(List<Path> paths) {
+		boolean updateRootPackage = paths.size() >= allCompilationInfo.size() || allCompilationInfo.isEmpty()
+
 		def futures = paths.collect { path ->
 			CompletableFuture.supplyAsync({
 				Validate.notNull(path)
 				createCompilationInfo(path)
 			}, threadPool)
 		}
-		return awaitAll(futures)
+
+		def infos = awaitAll(futures)
+		if (updateRootPackage) determineRootPackageName()
+
+		return infos
 	}
 
 	@Override
@@ -81,19 +91,28 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 			}, threadPool)
 		}
 
+		if (relocates.size() >= allCompilationInfo.size()) {
+			determineRootPackageName()
+		}
+
 		return awaitAll(futures)
 	}
 
 	@Override
 	List<CompilationInfo> updateCompilationInfo(Map<Path, String> pathWithContent) {
 		Validate.notNull(pathWithContent)
+		boolean updateRootPackage = pathWithContent.size() >= allCompilationInfo.size() || allCompilationInfo.isEmpty()
 
 		def futures = pathWithContent.collect { path, content ->
 			CompletableFuture.supplyAsync({
 				createCompilationInfo(path, content)
 			}, threadPool)
 		}
-		return awaitAll(futures)
+
+		def infos = awaitAll(futures)
+		if (updateRootPackage) determineRootPackageName()
+
+		return infos
 	}
 
 	private List<CompilationInfo> awaitAll(List<CompletableFuture<CompilationInfo>> futures) {

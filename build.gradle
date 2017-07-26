@@ -10,7 +10,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 group 'io.gitlab.arturbosch.jpal'
-version '1.0.0.RC5.1'
+version '1.0.0.RC6'
 
 repositories {
 	mavenCentral()
@@ -57,7 +57,7 @@ publishing {
 
 dependencies {
 	compile 'org.codehaus.groovy:groovy-all:2.4.11'
-	compile 'com.github.javaparser:javaparser-core:3.2.5'
+	compile 'com.github.javaparser:javaparser-core:3.2.12'
 	testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
 }
 

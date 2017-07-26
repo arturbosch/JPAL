@@ -19,6 +19,12 @@ class CompilationStorageTest extends Specification {
 		given:
 		def storage = JPAL.newInstance(Helper.BASE_PATH)
 
+		when: "when retrieving root package"
+		def packageName = storage.rootPackageName
+
+		then: "it must have been extracted from compilation infos"
+		packageName == "io.gitlab.arturbosch.jpal.dummies"
+
 		when: "retrieving all compilation info"
 		def info = storage.allCompilationInfo
 

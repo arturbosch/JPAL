@@ -3,6 +3,7 @@ package io.gitlab.arturbosch.jpal.core
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import groovy.util.logging.Log
+import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.PrefixedThreadFactory
 import io.gitlab.arturbosch.jpal.internal.SmartCache
 import io.gitlab.arturbosch.jpal.internal.StreamCloser
@@ -16,6 +17,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.logging.Level
 import java.util.regex.Pattern
+import java.util.stream.Collectors
 import java.util.stream.Stream
 
 /**
@@ -48,6 +50,10 @@ import java.util.stream.Stream
 @Log
 @CompileStatic
 class DefaultCompilationStorage implements CompilationStorage {
+
+	private static final DEFAULT_PACKAGE = "<default>"
+
+	protected String rootPackageName = DEFAULT_PACKAGE
 
 	protected final SmartCache<QualifiedType, CompilationInfo> typeCache = new SmartCache<>()
 	protected final SmartCache<Path, CompilationInfo> pathCache = new SmartCache<>()
@@ -90,7 +96,23 @@ class DefaultCompilationStorage implements CompilationStorage {
 
 		threadPool.shutdown()
 		StreamCloser.quietly(walker)
+
+		determineRootPackageName()
 		return this
+	}
+
+	@PackageScope
+	void setRootPackageName(String name) {
+		rootPackageName = name
+	}
+
+	protected void determineRootPackageName() {
+		List<String> packages = allCompilationInfo.stream()
+				.map { it.qualifiedType }
+				.map { it.onlyPackageName }
+				.filter { it != TypeHelper.DEFAULT_PACKAGE }
+				.collect(Collectors.toList())
+		rootPackageName = PackageHelper.determineRootPackageName(packages)
 	}
 
 	private static Stream<Path> getJavaFilteredFileStream(Path root) {
@@ -98,6 +120,16 @@ class DefaultCompilationStorage implements CompilationStorage {
 				.filter { it.toString().endsWith(".java") }
 				.filter { !it.toString().endsWith("module-info.java") }
 				.filter { !it.toString().endsWith("package-info.java") } as Stream<Path>
+	}
+
+	@Override
+	boolean isDefaultPackageRootPackage() {
+		return rootPackageName == TypeHelper.DEFAULT_PACKAGE
+	}
+
+	@Override
+	String getRootPackageName() {
+		return rootPackageName
 	}
 
 	@Override

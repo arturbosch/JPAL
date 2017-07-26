@@ -1,6 +1,7 @@
 package io.gitlab.arturbosch.jpal.core
 
 import groovy.transform.CompileStatic
+import io.gitlab.arturbosch.jpal.ast.TypeHelper
 
 import java.nio.file.Path
 import java.util.regex.Pattern
@@ -19,6 +20,7 @@ final class CompilationStorageBuilder {
 	private List<Pattern> filters = new ArrayList<>()
 	private boolean updatable = false
 	private CompilationInfoProcessor processor = null
+	private String packageName = TypeHelper.DEFAULT_PACKAGE
 
 	/**
 	 * Specifies the root path from which all sub paths get pre compiled
@@ -28,6 +30,16 @@ final class CompilationStorageBuilder {
 	 */
 	CompilationStorageBuilder withRoot(Path root) {
 		this.root = root
+		return this
+	}
+
+	/**
+	 * Specifies the root package name
+	 * @param packageName
+	 * @return
+	 */
+	CompilationStorageBuilder withRootPackageName(String packageName) {
+		this.packageName = packageName
 		return this
 	}
 
