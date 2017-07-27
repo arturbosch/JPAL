@@ -18,6 +18,13 @@ class CompilationStorageTest extends Specification {
 	def "domain tests"() {
 		given:
 		def storage = JPAL.newInstance(Helper.BASE_PATH)
+		
+		when: "retrieving stored package names"
+		def packageNames = storage.getStoredPackageNames()
+		println(packageNames)
+
+		then: "it must contain the dummies package"
+		packageNames.contains("io.gitlab.arturbosch.jpal.dummies")
 
 		when: "retrieving all compilation info"
 		def info = storage.allCompilationInfo

@@ -13,7 +13,11 @@ import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import java.util.regex.Pattern
 import java.util.stream.Stream
@@ -51,6 +55,14 @@ class DefaultCompilationStorage implements CompilationStorage {
 
 	protected final SmartCache<QualifiedType, CompilationInfo> typeCache = new SmartCache<>()
 	protected final SmartCache<Path, CompilationInfo> pathCache = new SmartCache<>()
+
+	/**
+	 * Attention: package tracking is not thread safe and is only done outside of concurrent
+	 * compilation or type usage calculation. Do not concurrently update packages and do analysis
+	 * with these set/map.
+	 */
+	protected final NavigableSet<String> packageNames = new ConcurrentSkipListSet<>()
+	protected final ConcurrentMap<String, AtomicInteger> packageUsage = new ConcurrentHashMap<>()
 
 	protected final JavaCompilationParser parser
 	protected final CompilationInfoProcessor processor
@@ -123,6 +135,11 @@ class DefaultCompilationStorage implements CompilationStorage {
 		return typeCache.get(qualifiedOuterType)
 	}
 
+	@Override
+	Set<String> getStoredPackageNames() {
+		return Collections.unmodifiableSet(packageNames)
+	}
+
 	/**
 	 * Compiles from path or source code and return the compilation info.
 	 * May be null!
@@ -134,6 +151,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 		compile.ifPresent {
 			typeCache.put(it.qualifiedType, it)
 			pathCache.put(path, it)
+			addPackageName(it.qualifiedType.onlyPackageName)
 		}
 		return compile.orElse(null)
 	}
@@ -159,4 +177,23 @@ class DefaultCompilationStorage implements CompilationStorage {
 		return info
 	}
 
+	protected void addPackageName(String maybeNewPackageName) {
+		packageNames.add(maybeNewPackageName)
+		packageUsage.putIfAbsent(maybeNewPackageName, new AtomicInteger())
+		packageUsage.get(maybeNewPackageName).incrementAndGet()
+	}
+
+	protected void removePackageName(String packageName) {
+		def counter = packageUsage.get(packageName)
+		if (counter) {
+			if (counter.get() <= 1) {
+				packageUsage.remove(packageName)
+				packageNames.remove(packageName)
+			} else {
+				counter.decrementAndGet()
+			}
+		} else {
+			packageNames.remove(packageName)
+		}
+	}
 }

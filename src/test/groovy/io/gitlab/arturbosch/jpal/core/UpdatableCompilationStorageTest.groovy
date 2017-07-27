@@ -40,6 +40,32 @@ class UpdatableCompilationStorageTest extends Specification {
 		!storage.getCompilationInfo(relocatedCU.path).isPresent()
 	}
 
+	def "update package names domain test"() {
+		given: "an updatable storage"
+		def storage = JPAL.initializedUpdatable(Helper.BASE_PATH)
+		
+		when: "testing the packages"
+		def packageNames = storage.getStoredPackageNames()
+		
+		then: "is must contain all for used packages from base path"
+		packageNames.contains("io.gitlab.arturbosch.jpal.dummies")
+		packageNames.contains("io.gitlab.arturbosch.jpal.dummies.resolving")
+		packageNames.contains("io.gitlab.arturbosch.jpal.dummies.test")
+		packageNames.contains("io.gitlab.arturbosch.jpal.dummies.filtered")
+
+		when: "removing the FilteredDummy"
+		storage.removeCompilationInfo([Helper.FILTERED_DUMMY])
+
+		then: "stored packages must be 3"
+		packageNames.size() == 3
+
+		when: "removing one dummy from resolving"
+		storage.removeCompilationInfo([Helper.RESOLVING_DUMMY])
+
+		then: "the package is still there"
+		packageNames.contains("io.gitlab.arturbosch.jpal.dummies.resolving")
+	}
+
 	def "updatable from source code domain test"() {
 		given: "an updatable storage"
 		def storage = JPAL.updatable()
@@ -68,7 +94,7 @@ class UpdatableCompilationStorageTest extends Specification {
 		given: "an updatable storage with filters"
 		def storage = JPAL.updatable(null, [Pattern.compile(".*/filtered/.*")])
 		when: "updating storage with a filtered path"
-		def infos = storage.updateCompilationInfo([Helper.BASE_PATH.resolve("filtered/FilteredDummy.java")])
+		def infos = storage.updateCompilationInfo([Helper.FILTERED_DUMMY])
 		then: "the path should not be compiled"
 		infos.isEmpty()
 

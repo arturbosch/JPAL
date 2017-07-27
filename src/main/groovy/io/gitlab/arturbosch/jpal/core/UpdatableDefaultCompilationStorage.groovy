@@ -63,6 +63,7 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 			getCompilationInfo(path).ifPresent {
 				pathCache.remove(path)
 				typeCache.remove(it.qualifiedType)
+				removePackageName(it.qualifiedType.onlyPackageName)
 			}
 		}
 	}

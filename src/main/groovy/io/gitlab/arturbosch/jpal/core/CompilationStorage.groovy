@@ -35,5 +35,12 @@ interface CompilationStorage {
 	 */
 	Optional<CompilationInfo> getCompilationInfo(QualifiedType qualifiedType)
 
-
+	/**
+	 * A set of package names, describing the package structure.
+	 * Run contains checks on it if you need to make sure the analyzed file
+	 * really from the analyzed project.
+	 *
+	 * @return an unmodifiable set of package names
+	 */
+	Set<String> getStoredPackageNames()
 }
