@@ -70,10 +70,12 @@ class DefaultCompilationStorage implements CompilationStorage {
 	protected final List<Pattern> pathFilters
 
 	@PackageScope
-	DefaultCompilationStorage(CompilationInfoProcessor processor = null, List<Pattern> pathFilters = new ArrayList<>()) {
+	DefaultCompilationStorage(CompilationInfoProcessor processor = null,
+							  List<Pattern> pathFilters = new ArrayList<>(),
+							  JavaCompilationParser javaParser = null) {
 		this.processor = processor
 		this.pathFilters = pathFilters
-		this.parser = new JavaCompilationParser()
+		this.parser = javaParser ?: new JavaCompilationParser()
 	}
 
 	@PackageScope
@@ -84,7 +86,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 
 		// first build compilation info's foundation
 		Stream<Path> walker = getJavaFilteredFileStream(root)
-		List<CompletableFuture> futures = walker.collect { Path path ->
+		List<CompletableFuture<Void>> futures = walker.collect { Path path ->
 			CompletableFuture
 					.runAsync({ createCompilationInfo(path) }, threadPool)
 					.exceptionally { log.log(Level.WARNING, "Error compiling $path:", it) }

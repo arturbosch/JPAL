@@ -1,15 +1,16 @@
 package io.gitlab.arturbosch.jpal.core
 
 import com.github.javaparser.JavaParser
-import com.github.javaparser.ParseException
 import com.github.javaparser.ParseProblemException
-import com.github.javaparser.TokenMgrException
+import com.github.javaparser.ParseResult
+import com.github.javaparser.ParseStart
+import com.github.javaparser.ParserConfiguration
+import com.github.javaparser.Providers
+import com.github.javaparser.ast.CompilationUnit
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import groovy.util.logging.Log
-import org.codehaus.groovy.runtime.IOGroovyMethods
 
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.logging.Level
 
@@ -22,30 +23,33 @@ import java.util.logging.Level
 @SuppressWarnings("GroovyMissingReturnStatement")
 class JavaCompilationParser {
 
-	static Optional<CompilationInfo> compile(Path path) {
-		def result = null
-		IOGroovyMethods.withCloseable(Files.newInputStream(path)) {
-			try {
-				def unit = JavaParser.parse(it)
-				if (unit.types.isEmpty()) return Optional.empty()
-				result = CompilationInfo.of(unit, path)
-			} catch (ParseException | TokenMgrException | ParseProblemException error) {
-				log.log(Level.SEVERE, "Error while compiling $path occurred", error)
-			}
-		}
-		return Optional.ofNullable(result) as Optional<CompilationInfo>
+	private final ParserConfiguration configuration
+
+	JavaCompilationParser(ParserConfiguration configuration = JavaParser.staticConfiguration) {
+		this.configuration = configuration
 	}
 
-	static Optional<CompilationInfo> compileFromCode(Path path, String code) {
-		def result = null
-		try {
-			def unit = JavaParser.parse(code)
+	Optional<CompilationInfo> compile(Path path) {
+		def parseResult = new JavaParser(configuration).parse(ParseStart.COMPILATION_UNIT, Providers.provider(path))
+		return internalCompile(parseResult, path)
+	}
+
+	private static Optional<CompilationInfo> internalCompile(ParseResult<CompilationUnit> parseResult, Path path) {
+		if (parseResult.isSuccessful()) {
+			def unit = parseResult.getResult().get()
 			if (unit.types.isEmpty()) return Optional.empty()
-			result = CompilationInfo.of(unit, path)
-		} catch (ParseException | TokenMgrException | ParseProblemException error) {
-			log.log(Level.SEVERE, "Error while compiling $path occurred", error)
+			return Optional.of(CompilationInfo.of(unit, path))
 		}
-		return Optional.ofNullable(result) as Optional<CompilationInfo>
+		def message = new ParseProblemException(parseResult.getProblems()).message
+		log.log(Level.SEVERE, "Error while compiling $path occurred")
+		log.log(Level.SEVERE, message)
+		return Optional.empty()
+	}
+
+
+	Optional<CompilationInfo> compileFromCode(Path path, String code) {
+		def parseResult = new JavaParser(configuration).parse(ParseStart.COMPILATION_UNIT, Providers.provider(code))
+		return internalCompile(parseResult, path)
 	}
 
 }

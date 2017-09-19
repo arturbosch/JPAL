@@ -18,7 +18,7 @@ class CompilationStorageTest extends Specification {
 	def "domain tests"() {
 		given:
 		def storage = JPAL.newInstance(Helper.BASE_PATH)
-		
+
 		when: "retrieving stored package names"
 		def packageNames = storage.getStoredPackageNames()
 		println(packageNames)

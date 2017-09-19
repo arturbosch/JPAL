@@ -19,6 +19,7 @@ final class CompilationStorageBuilder {
 	private List<Pattern> filters = new ArrayList<>()
 	private boolean updatable = false
 	private CompilationInfoProcessor processor = null
+	private JavaCompilationParser parser = null
 
 	/**
 	 * Specifies the root path from which all sub paths get pre compiled
@@ -65,16 +66,30 @@ final class CompilationStorageBuilder {
 	}
 
 	/**
+	 * Species the underlying JavaCompilationParser. Allows to configure the javaparser configurations
+	 * eg. disallowing tokens be to parsed to save memory.
+	 *
+	 * @param parser the parser to use to compile java files
+	 * @return this builder
+	 */
+	CompilationStorageBuilder withParser(JavaCompilationParser parser) {
+		this.parser = parser
+		return this
+	}
+
+	/**
 	 * Builds the compilation storage with configured or default values.
 	 * @return the compilation storage
 	 */
 	CompilationStorage build() {
 		def storage = updatable ?
 				root != null ?
-						JPAL.initializedUpdatable(root, processor) :
-						JPAL.updatable(processor) :
+						new UpdatableDefaultCompilationStorage(processor, filters, parser).initialize(root) :
+						new UpdatableDefaultCompilationStorage(processor, filters, parser)
+				:
 				root != null ?
-						JPAL.newInstance(root, processor) : null
+						new DefaultCompilationStorage(processor, filters, parser).initialize(root) :
+						null
 		if (storage == null) throw new IllegalStateException("Provided configuration was invalid!")
 		return storage
 	}

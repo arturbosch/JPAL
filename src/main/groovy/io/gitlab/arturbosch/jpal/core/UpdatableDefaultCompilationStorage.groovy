@@ -24,8 +24,9 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 
 	@PackageScope
 	UpdatableDefaultCompilationStorage(CompilationInfoProcessor processor = null,
-									   List<Pattern> pathFilters = new ArrayList<>()) {
-		super(processor, pathFilters)
+									   List<Pattern> pathFilters = new ArrayList<>(),
+									   JavaCompilationParser parser = null) {
+		super(processor, pathFilters, parser)
 		Runtime.runtime.addShutdownHook { threadPool.shutdown() }
 	}
 

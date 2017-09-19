@@ -1,6 +1,5 @@
 package io.gitlab.arturbosch.jpal.core
 
-import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.Helper
 import spock.lang.Specification
 
