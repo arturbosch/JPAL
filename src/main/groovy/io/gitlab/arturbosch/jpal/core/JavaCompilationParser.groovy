@@ -8,7 +8,6 @@ import com.github.javaparser.ParserConfiguration
 import com.github.javaparser.Providers
 import com.github.javaparser.ast.CompilationUnit
 import groovy.transform.CompileStatic
-import groovy.transform.PackageScope
 import groovy.util.logging.Log
 
 import java.nio.file.Path
@@ -19,7 +18,6 @@ import java.util.logging.Level
  */
 @CompileStatic
 @Log
-@PackageScope
 @SuppressWarnings("GroovyMissingReturnStatement")
 class JavaCompilationParser {
 
