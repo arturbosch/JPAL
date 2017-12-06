@@ -9,7 +9,9 @@ import com.github.javaparser.printer.PrettyPrinterConfiguration
 final class Printer {
 
 	static final PrettyPrinterConfiguration NO_COMMENTS =
-			new PrettyPrinterConfiguration().setPrintComments(false)
+			new PrettyPrinterConfiguration()
+					.setPrintComments(false)
+					.setPrintJavaDoc(false)
 
 	static final PrettyPrinter PRETTY_PRINTER = new PrettyPrinter(NO_COMMENTS)
 
