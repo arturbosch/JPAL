@@ -9,6 +9,8 @@ import io.gitlab.arturbosch.jpal.resolution.solvers.SymbolSolver
 import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
 import io.gitlab.arturbosch.jpal.resolution.symbols.SymbolReference
 
+import java.nio.file.Path
+
 /**
  * Wraps solver types to provide convenient methods to resolve types and symbols.
  *
@@ -39,6 +41,15 @@ final class Resolver implements Solver {
 		return typeSolver.getQualifiedType(data, type)
 	}
 
+	Optional<CompilationInfo> find(Path path) {
+		return storage.getCompilationInfo(path)
+	}
+
+	Optional<CompilationInfo> find(QualifiedType type) {
+		return storage.getCompilationInfo(type)
+	}
+
+	@Deprecated
 	CompilationStorage getStorage() {
 		return storage
 	}
