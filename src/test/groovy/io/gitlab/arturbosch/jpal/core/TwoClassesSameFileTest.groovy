@@ -1,5 +1,6 @@
 package io.gitlab.arturbosch.jpal.core
 
+import io.gitlab.arturbosch.jpal.Helper
 import spock.lang.Specification
 
 /**
@@ -7,5 +8,15 @@ import spock.lang.Specification
  */
 class TwoClassesSameFileTest extends Specification {
 
+	def "should store two qualified types for two classes in one file"() {
+		given:
+		def path = Helper.BASE_PATH.resolve("A.java")
+		def storage = JPAL.newInstance(path)
 
+		when:
+		def infos = storage.allCompilationInfo
+
+		then:
+		infos.size() == 2
+	}
 }

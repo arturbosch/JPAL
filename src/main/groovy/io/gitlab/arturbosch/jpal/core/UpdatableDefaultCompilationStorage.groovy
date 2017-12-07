@@ -61,10 +61,13 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 	@Override
 	void removeCompilationInfo(List<Path> paths) {
 		paths.each { path ->
-			getCompilationInfo(path).ifPresent {
+			getCompilationInfo(path).ifPresent { CompilationInfo info ->
 				pathCache.remove(path)
-				typeCache.remove(it.qualifiedType)
-				removePackageName(it.qualifiedType.onlyPackageName)
+				typeCache.remove(info.qualifiedType)
+				info.innerClasses.keySet().each {
+					typeCache.remove(it)
+				}
+				removePackageName(info.qualifiedType.onlyPackageName)
 			}
 		}
 	}

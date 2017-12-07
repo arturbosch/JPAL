@@ -135,26 +135,40 @@ final class TypeHelper {
 	static Pair<Pair<QualifiedType, TypeDeclaration>, Map<QualifiedType, TypeDeclaration>> getQualifiedDeclarationsOfInnerClasses(CompilationUnit unit) {
 		List<TypeDeclaration> types = unit.getTypes()
 		if (types.size() >= 1) {
-
-			TypeDeclaration mainClass = types[0]
 			String packageName = unit.packageDeclaration.map { it.nameAsString }.orElse("")
-			String outerClassName = mainClass.name
-			def mainClassQualifiedType = new QualifiedType("$packageName.$outerClassName", QualifiedType.TypeToken.REFERENCE)
 
-			def innerTypes = findInnerTypes(mainClass, "$packageName.$outerClassName.")
-			return new Pair<>(new Pair<>(mainClassQualifiedType, mainClass), innerTypes)
+			Pair<QualifiedType, TypeDeclaration> firstTopLevel
+			Map<QualifiedType, TypeDeclaration> otherTopLevelOrInnerDeclarations = [:]
+			for (indexTypeDecl in types.withIndex()) {
+				def currentType = qualifiedTypeForTopLevelTypeDeclaration(indexTypeDecl.first, packageName)
+				def innerTypesMap = findInnerTypes(indexTypeDecl.first, currentType.name)
+				if (indexTypeDecl.second == 0) { // first top level class is treated special by CompilationInfo
+					firstTopLevel = new Pair<>(currentType, indexTypeDecl.first)
+				} else {
+					otherTopLevelOrInnerDeclarations.put(currentType, indexTypeDecl.first)
+				}
+				otherTopLevelOrInnerDeclarations.putAll(innerTypesMap)
+			}
+			if (firstTopLevel == null) throw new NoClassesException("No classes found inside this compilation unit: \n $unit")
+			return new Pair<>(firstTopLevel, otherTopLevelOrInnerDeclarations)
 		} else {
 			throw new NoClassesException("No classes found inside this compilation unit: \n $unit")
 		}
 	}
 
-	private static Map<QualifiedType, TypeDeclaration> findInnerTypes(Node n, String packagePlusMain) {
-		def types = Validate.notNull(n).getChildNodesByType(TypeDeclaration.class)
+	private
+	static QualifiedType qualifiedTypeForTopLevelTypeDeclaration(TypeDeclaration mainClass, String packageName) {
+		String mainClassName = mainClass.name
+		return new QualifiedType("$packageName.$mainClassName", QualifiedType.TypeToken.REFERENCE)
+	}
+
+	private static Map<QualifiedType, TypeDeclaration> findInnerTypes(TypeDeclaration typeDecl, String parentName) {
+		def types = Validate.notNull(typeDecl).getChildNodesByType(TypeDeclaration.class)
 		return types.stream().filter { it.parentNode instanceof Optional<TypeDeclaration> }
 				.collect()
 				.collectEntries {
 			def declaration = it as TypeDeclaration
-			def qualifiedName = "$packagePlusMain${declaration.nameAsString}"
+			def qualifiedName = "$parentName${parentName.endsWith(".") ? "" : "."}${declaration.nameAsString}"
 			def qualifiedType = new QualifiedType(qualifiedName, QualifiedType.TypeToken.REFERENCE)
 			[qualifiedType, it]
 		}

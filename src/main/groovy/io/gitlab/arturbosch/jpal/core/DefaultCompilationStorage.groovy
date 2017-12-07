@@ -150,10 +150,13 @@ class DefaultCompilationStorage implements CompilationStorage {
 		if (isPackageOrModuleInfo(path)) return null
 		if (isFiltered(path)) return null
 		def compile = code ? parser.compileFromCode(path, code) : parser.compile(path)
-		compile.ifPresent {
-			typeCache.put(it.qualifiedType, it)
-			pathCache.put(path, it)
-			addPackageName(it.qualifiedType.onlyPackageName)
+		compile.ifPresent { CompilationInfo info ->
+			typeCache.put(info.qualifiedType, info)
+			info.innerClasses.keySet().each {
+				typeCache.put(it, info)
+			}
+			pathCache.put(path, info)
+			addPackageName(info.qualifiedType.onlyPackageName)
 		}
 		return compile.orElse(null)
 	}
