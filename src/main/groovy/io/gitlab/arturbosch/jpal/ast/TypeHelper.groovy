@@ -135,7 +135,7 @@ final class TypeHelper {
 	static Pair<Pair<QualifiedType, TypeDeclaration>, Map<QualifiedType, TypeDeclaration>> getQualifiedDeclarationsOfInnerClasses(CompilationUnit unit) {
 		List<TypeDeclaration> types = unit.getTypes()
 		if (types.size() >= 1) {
-			String packageName = unit.packageDeclaration.map { it.nameAsString }.orElse("")
+			String packageName = unit.packageDeclaration.map { it.nameAsString }.orElse(DEFAULT_PACKAGE)
 
 			Pair<QualifiedType, TypeDeclaration> firstTopLevel
 			Map<QualifiedType, TypeDeclaration> otherTopLevelOrInnerDeclarations = [:]
