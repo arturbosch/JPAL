@@ -138,6 +138,24 @@ class CompilationInfo implements Processable, Comparable<CompilationInfo> {
 		return qualifiedType <=> o.qualifiedType
 	}
 
+	@Override
+	int hashCode() {
+		return Objects.hash(qualifiedType, relativePath)
+	}
+
+	@Override
+	boolean equals(Object obj) {
+		if (this.is(obj)) return true
+		if (getClass() != obj.class) return false
+
+		CompilationInfo that = (CompilationInfo) obj
+
+		if (qualifiedType != that.qualifiedType) return false
+		if (relativePath != that.relativePath) return false
+
+		return true
+	}
+
 	@CompileStatic
 	@PackageScope
 	trait Processable {

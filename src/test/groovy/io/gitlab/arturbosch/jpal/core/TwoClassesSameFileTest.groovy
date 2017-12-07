@@ -14,7 +14,7 @@ class TwoClassesSameFileTest extends Specification {
 		def storage = JPAL.newInstance(path)
 
 		when:
-		def infos = storage.allCompilationInfo
+		def infos = storage.allQualifiedTypes
 
 		then:
 		infos.size() == 2
