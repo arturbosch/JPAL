@@ -56,7 +56,7 @@ final class ClassHelper {
 		Validate.notNull(n)
 		String signature = ""
 		NodeHelper.findDeclaringClass(n)
-				.ifPresent { signature = createSignature(it) + "\$$signature" }
+				.ifPresent { signature = createFullSignature(it) + "\$$signature" }
 		NodeHelper.findDeclaringMethod(n)
 				.ifPresent { signature = signature + "${it.name}\$" }
 		return signature + createSignature(n)
