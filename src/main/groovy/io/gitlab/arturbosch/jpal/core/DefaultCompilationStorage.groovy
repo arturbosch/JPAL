@@ -54,14 +54,11 @@ import java.util.stream.Stream
 @CompileStatic
 class DefaultCompilationStorage implements CompilationStorage {
 
+	private boolean fresh = true
+
 	protected final SmartCache<QualifiedType, CompilationInfo> typeCache = new SmartCache<>()
 	protected final SmartCache<Path, CompilationInfo> pathCache = new SmartCache<>()
 
-	/*
-	 * Attention: package tracking is not thread safe and is only done outside of concurrent
-	 * compilation or type usage calculation. Do not concurrently update packages and do analysis
-	 * with these set/map.
-	 */
 	protected final NavigableSet<String> packageNames = new ConcurrentSkipListSet<>()
 	protected final ConcurrentMap<String, AtomicInteger> packageUsage = new ConcurrentHashMap<>()
 
@@ -88,8 +85,8 @@ class DefaultCompilationStorage implements CompilationStorage {
 		this.parser = javaParser ?: new JavaCompilationParser()
 	}
 
-	@PackageScope
 	CompilationStorage initialize(Path root) {
+		Validate.isTrue(fresh, "Initialize only works on newly created storages.")
 		// first build compilation info's foundation
 		Stream<Path> walker = getJavaFilteredFileStream(root)
 		List<CompletableFuture<Void>> futures = walker.collect { Path path ->
@@ -109,6 +106,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
 
 		StreamCloser.quietly(walker)
+		fresh = false
 		return this
 	}
 

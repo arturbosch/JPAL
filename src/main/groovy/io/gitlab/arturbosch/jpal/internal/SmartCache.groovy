@@ -19,6 +19,10 @@ final class SmartCache<K, V> {
 		this.defaultValue = null
 	}
 
+	boolean isEmpty() {
+		cache.isEmpty()
+	}
+
 	void reset() {
 		cache.clear()
 	}

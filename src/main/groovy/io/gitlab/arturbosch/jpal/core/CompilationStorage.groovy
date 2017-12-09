@@ -10,6 +10,14 @@ import java.nio.file.Path
 interface CompilationStorage {
 
 	/**
+	 * Initializes this compilation storage with java files found inside the given root package.
+	 *
+	 * @param root the top directory to start compiling java files
+	 * @return this storage
+	 */
+	CompilationStorage initialize(Path root)
+
+	/**
 	 * @return retrieves all stored qualified type keys
 	 */
 	Set<QualifiedType> getAllQualifiedTypes()
