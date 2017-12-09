@@ -2,6 +2,7 @@ package io.gitlab.arturbosch.jpal.core
 
 import io.gitlab.arturbosch.jpal.Helper
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
+import io.gitlab.arturbosch.jpal.resolution.Resolver
 import spock.lang.Specification
 
 /**
@@ -57,7 +58,7 @@ class CompilationStorageTest extends Specification {
 		given: "compilation storage with processor"
 		def storage = JPAL.newInstance(Helper.BASE_PATH, new CompilationInfoProcessor<String>() {
 			@Override
-			String process(CompilationInfo info) {
+			String process(CompilationInfo info, Resolver resolver) {
 				return "nice"
 			}
 		})

@@ -7,7 +7,7 @@ import io.gitlab.arturbosch.jpal.internal.PrefixedThreadFactory
 import io.gitlab.arturbosch.jpal.internal.StreamCloser
 import io.gitlab.arturbosch.jpal.internal.Validate
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
-import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
+import io.gitlab.arturbosch.jpal.resolution.Resolver
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -63,7 +63,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 
 	protected final JavaCompilationParser parser
 	protected final CompilationInfoProcessor processor
-	protected final TypeSolver typeSolver = new TypeSolver(this)
+	protected final Resolver typeSolver = new Resolver(this)
 	protected final List<Pattern> pathFilters
 
 	protected final ExecutorService executor
@@ -96,10 +96,9 @@ class DefaultCompilationStorage implements CompilationStorage {
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
 
 		// search for used types after compilation as star imports are else not resolvable
-		futures = allCompilationInfo.collect { info ->
+		futures = allCompilationInfo.collect { CompilationInfo info ->
 			CompletableFuture
-					.runAsync({ info.findUsedTypes(typeSolver) }, executor)
-					.thenRun { if (processor) info.runProcessor(processor) }
+					.runAsync({ findTypesAndRunProcessor(info) }, executor)
 					.exceptionally { log.log(Level.WARNING, "Error finding used types for $info.path:", it) }
 		}
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
@@ -179,7 +178,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 	protected CompilationInfo findTypesAndRunProcessor(CompilationInfo info) {
 		if (info) {
 			info.findUsedTypes(typeSolver)
-			if (processor) info.runProcessor(processor)
+			if (processor) info.runProcessor(processor, typeSolver)
 		}
 		return info
 	}

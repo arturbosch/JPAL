@@ -1,7 +1,6 @@
 package io.gitlab.arturbosch.jpal.ast
 
 import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.Node
 import com.github.javaparser.ast.PackageDeclaration
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.TypeDeclaration
@@ -180,11 +179,11 @@ final class TypeHelper {
 	 * @param resolver use given type solver for qualified types or build one if null
 	 * @return a set of qualified types
 	 */
-	static Set<QualifiedType> findAllUsedTypes(CompilationUnit unit, TypeSolver resolver = null) {
+	static Set<QualifiedType> findAllUsedTypes(CompilationUnit unit, Resolver resolver = null) {
 		def resolutionData = ResolutionData.of(unit)
 		return new FindAllUsedTypesCollector().collect(unit).stream()
 				.map { withOuterClasses(it) }
-				.map { (resolver ? new TypeSolver() : resolver).getQualifiedType(resolutionData, it) }
+				.map { (resolver ? new Resolver(null) : resolver).resolveType(it, resolutionData) }
 				.collect(Collectors.toSet())
 	}
 

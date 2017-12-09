@@ -8,7 +8,7 @@ import io.gitlab.arturbosch.jpal.ast.TypeHelper
 import io.gitlab.arturbosch.jpal.internal.Validate
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import io.gitlab.arturbosch.jpal.resolution.ResolutionData
-import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
+import io.gitlab.arturbosch.jpal.resolution.Resolver
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -83,7 +83,7 @@ class CompilationInfo implements Processable, Comparable<CompilationInfo> {
 	}
 
 	@PackageScope
-	void findUsedTypes(TypeSolver typeSolver) {
+	void findUsedTypes(Resolver typeSolver) {
 		Validate.notNull(usedTypes)
 		def usedTypes = TypeHelper.findAllUsedTypes(unit, typeSolver)
 		this.usedTypes = replaceQualifiedTypesOfInnerClasses(usedTypes, innerClasses.keySet())
@@ -163,8 +163,8 @@ class CompilationInfo implements Processable, Comparable<CompilationInfo> {
 		private Object processedObject
 
 		@PackageScope
-		<T> void runProcessor(CompilationInfoProcessor<T> processor) {
-			this.processedObject = processor.process(this as CompilationInfo)
+		<T> void runProcessor(CompilationInfoProcessor<T> processor, Resolver resolver) {
+			this.processedObject = processor.process(this as CompilationInfo, resolver)
 		}
 
 		def <T> T getProcessedObject(Class<T> clazz) {
