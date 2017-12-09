@@ -4,7 +4,6 @@ import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import groovy.util.logging.Log
 import io.gitlab.arturbosch.jpal.internal.PrefixedThreadFactory
-import io.gitlab.arturbosch.jpal.internal.SmartCache
 import io.gitlab.arturbosch.jpal.internal.StreamCloser
 import io.gitlab.arturbosch.jpal.internal.Validate
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
@@ -56,8 +55,8 @@ class DefaultCompilationStorage implements CompilationStorage {
 
 	private boolean fresh = true
 
-	protected final SmartCache<QualifiedType, CompilationInfo> typeCache = new SmartCache<>()
-	protected final SmartCache<Path, CompilationInfo> pathCache = new SmartCache<>()
+	protected final ConcurrentMap<QualifiedType, CompilationInfo> typeCache = new ConcurrentHashMap<>()
+	protected final ConcurrentMap<Path, CompilationInfo> pathCache = new ConcurrentHashMap<>()
 
 	protected final NavigableSet<String> packageNames = new ConcurrentSkipListSet<>()
 	protected final ConcurrentMap<String, AtomicInteger> packageUsage = new ConcurrentHashMap<>()
@@ -119,7 +118,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 
 	@Override
 	Set<QualifiedType> getAllQualifiedTypes() {
-		return Collections.unmodifiableSet(typeCache.keys())
+		return Collections.unmodifiableSet(typeCache.keySet())
 	}
 
 	@Override
@@ -130,14 +129,14 @@ class DefaultCompilationStorage implements CompilationStorage {
 	@Override
 	Optional<CompilationInfo> getCompilationInfo(Path path) {
 		Validate.notNull(path)
-		return pathCache.get(path)
+		return Optional.ofNullable(pathCache.get(path))
 	}
 
 	@Override
 	Optional<CompilationInfo> getCompilationInfo(QualifiedType qualifiedType) {
 		Validate.notNull(qualifiedType)
 		def qualifiedOuterType = qualifiedType.asOuterClass()
-		return typeCache.get(qualifiedOuterType)
+		return Optional.ofNullable(typeCache.get(qualifiedOuterType))
 	}
 
 	@Override
