@@ -65,6 +65,29 @@ final class NodeHelper {
 	}
 
 	/**
+	 * Starting from root finds all nodes matching given clazz and which are declared inside a class
+	 * with given clazzName.
+	 *
+	 * @param root starting node
+	 * @param clazz children of type
+	 * @param clazzName name of the declaring clazz
+	 * @return list of child nodes of type clazz inside given clazzName
+	 */
+	static <N extends Node> List<N> findNodesInClass(Node root, Class<N> clazz, String clazzName) {
+		List<N> nodes = new ArrayList<>()
+		for (Node child : root.getChildNodes()) {
+			if (clazz.isInstance(child) &&
+					findDeclaringClass(child)
+							.filter { it.nameAsString == clazzName }
+							.isPresent()) {
+				nodes.add(clazz.cast(child))
+			}
+			nodes.addAll(child.getChildNodesByType(clazz))
+		}
+		return nodes
+	}
+
+	/**
 	 * Returns a set of names of inner classes which are found within the given node.
 	 * @param n node to search for inner classes
 	 * @return set of strings
