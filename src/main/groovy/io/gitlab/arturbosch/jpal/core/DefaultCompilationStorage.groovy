@@ -16,6 +16,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.ConcurrentSkipListSet
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
@@ -56,7 +57,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 	protected final SmartCache<QualifiedType, CompilationInfo> typeCache = new SmartCache<>()
 	protected final SmartCache<Path, CompilationInfo> pathCache = new SmartCache<>()
 
-	/**
+	/*
 	 * Attention: package tracking is not thread safe and is only done outside of concurrent
 	 * compilation or type usage calculation. Do not concurrently update packages and do analysis
 	 * with these set/map.
@@ -69,10 +70,19 @@ class DefaultCompilationStorage implements CompilationStorage {
 	protected final TypeSolver typeSolver = new TypeSolver(this)
 	protected final List<Pattern> pathFilters
 
+	protected final ExecutorService executor
+
 	@PackageScope
 	DefaultCompilationStorage(CompilationInfoProcessor processor = null,
 							  List<Pattern> pathFilters = new ArrayList<>(),
-							  JavaCompilationParser javaParser = null) {
+							  JavaCompilationParser javaParser = null,
+							  ExecutorService executor = null) {
+		this.executor = executor ?: Executors.newFixedThreadPool(
+				Runtime.runtime.availableProcessors(),
+				new PrefixedThreadFactory("jpal")).with { ExecutorService service ->
+			Runtime.runtime.addShutdownHook { service.shutdown() }
+			service
+		}
 		this.processor = processor
 		this.pathFilters = pathFilters
 		this.parser = javaParser ?: new JavaCompilationParser()
@@ -80,15 +90,11 @@ class DefaultCompilationStorage implements CompilationStorage {
 
 	@PackageScope
 	CompilationStorage initialize(Path root) {
-
-		def threadPool = Executors.newFixedThreadPool(Runtime.runtime.availableProcessors(),
-				new PrefixedThreadFactory("jpal"))
-
 		// first build compilation info's foundation
 		Stream<Path> walker = getJavaFilteredFileStream(root)
 		List<CompletableFuture<Void>> futures = walker.collect { Path path ->
 			CompletableFuture
-					.runAsync({ createCompilationInfo(path) }, threadPool)
+					.runAsync({ createCompilationInfo(path) }, executor)
 					.exceptionally { log.log(Level.WARNING, "Error compiling $path:", it) }
 		}
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
@@ -96,13 +102,12 @@ class DefaultCompilationStorage implements CompilationStorage {
 		// search for used types after compilation as star imports are else not resolvable
 		futures = allCompilationInfo.collect { info ->
 			CompletableFuture
-					.runAsync({ info.findUsedTypes(typeSolver) }, threadPool)
+					.runAsync({ info.findUsedTypes(typeSolver) }, executor)
 					.thenRun { if (processor) info.runProcessor(processor) }
 					.exceptionally { log.log(Level.WARNING, "Error finding used types for $info.path:", it) }
 		}
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
 
-		threadPool.shutdown()
 		StreamCloser.quietly(walker)
 		return this
 	}

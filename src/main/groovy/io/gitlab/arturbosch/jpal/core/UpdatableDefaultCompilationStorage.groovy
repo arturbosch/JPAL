@@ -3,13 +3,11 @@ package io.gitlab.arturbosch.jpal.core
 import com.github.javaparser.utils.Pair
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
-import io.gitlab.arturbosch.jpal.internal.PrefixedThreadFactory
 import io.gitlab.arturbosch.jpal.internal.Validate
 
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
@@ -19,15 +17,12 @@ import java.util.stream.Collectors
 @CompileStatic
 class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage implements UpdatableCompilationStorage {
 
-	private ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.runtime.availableProcessors(),
-			new PrefixedThreadFactory("jpal"))
-
 	@PackageScope
 	UpdatableDefaultCompilationStorage(CompilationInfoProcessor processor = null,
 									   List<Pattern> pathFilters = new ArrayList<>(),
-									   JavaCompilationParser parser = null) {
-		super(processor, pathFilters, parser)
-		Runtime.runtime.addShutdownHook { threadPool.shutdown() }
+									   JavaCompilationParser parser = null,
+									   ExecutorService executor = null) {
+		super(processor, pathFilters, parser, executor)
 	}
 
 	@Override
@@ -41,7 +36,7 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 					typeCache.remove(it.qualifiedType)
 				}
 				createCompilationInfo(newPath)
-			}, threadPool)
+			}, executor)
 		}
 
 		return awaitAll(futures)
@@ -53,7 +48,7 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 			CompletableFuture.supplyAsync({
 				Validate.notNull(path)
 				createCompilationInfo(path)
-			}, threadPool)
+			}, executor)
 		}
 		return awaitAll(futures)
 	}
@@ -83,7 +78,7 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 					typeCache.remove(it.qualifiedType)
 				}
 				createCompilationInfo(newContent.a, newContent.b)
-			}, threadPool)
+			}, executor)
 		}
 
 		return awaitAll(futures)
@@ -96,7 +91,7 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 		def futures = pathWithContent.collect { path, content ->
 			CompletableFuture.supplyAsync({
 				createCompilationInfo(path, content)
-			}, threadPool)
+			}, executor)
 		}
 		return awaitAll(futures)
 	}
@@ -104,7 +99,7 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 	private List<CompilationInfo> awaitAll(List<CompletableFuture<CompilationInfo>> futures) {
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
 		def arrayOfFutures = futures.collect {
-			it.thenApplyAsync({ findTypesAndRunProcessor(it) }, threadPool)
+			it.thenApplyAsync({ findTypesAndRunProcessor(it) }, executor)
 		}.toArray(new CompletableFuture<?>[0])
 		CompletableFuture.allOf(arrayOfFutures).join()
 		List<CompilationInfo> result = futures.stream()

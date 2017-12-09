@@ -3,6 +3,7 @@ package io.gitlab.arturbosch.jpal.core
 import groovy.transform.CompileStatic
 
 import java.nio.file.Path
+import java.util.concurrent.ExecutorService
 import java.util.regex.Pattern
 
 /**
@@ -20,6 +21,7 @@ final class CompilationStorageBuilder {
 	private boolean updatable = false
 	private CompilationInfoProcessor processor = null
 	private JavaCompilationParser parser = null
+	private ExecutorService executor = null
 
 	/**
 	 * Specifies the root path from which all sub paths get pre compiled
@@ -78,17 +80,29 @@ final class CompilationStorageBuilder {
 	}
 
 	/**
+	 * Specifies the underlying executor service which will be used to compile java files
+	 * and produce CompilationInfo's.
+	 *
+	 * @param executionService the executor to use for compiling java files
+	 * @return this builder
+	 */
+	CompilationStorageBuilder withExecutor(ExecutorService executionService) {
+		this.executor = executionService
+		return this
+	}
+
+	/**
 	 * Builds the compilation storage with configured or default values.
 	 * @return the compilation storage
 	 */
 	CompilationStorage build() {
 		def storage = updatable ?
 				root != null ?
-						new UpdatableDefaultCompilationStorage(processor, filters, parser).initialize(root) :
-						new UpdatableDefaultCompilationStorage(processor, filters, parser)
+						new UpdatableDefaultCompilationStorage(processor, filters, parser, executor).initialize(root) :
+						new UpdatableDefaultCompilationStorage(processor, filters, parser, executor)
 				:
 				root != null ?
-						new DefaultCompilationStorage(processor, filters, parser).initialize(root) :
+						new DefaultCompilationStorage(processor, filters, parser, executor).initialize(root) :
 						null
 		if (storage == null) throw new IllegalStateException("Provided configuration was invalid!")
 		return storage

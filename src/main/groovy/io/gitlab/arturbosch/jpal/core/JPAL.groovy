@@ -3,6 +3,7 @@ package io.gitlab.arturbosch.jpal.core
 import io.gitlab.arturbosch.jpal.internal.Validate
 
 import java.nio.file.Path
+import java.util.concurrent.ExecutorService
 import java.util.regex.Pattern
 
 /**
@@ -22,13 +23,17 @@ final class JPAL {
 	 * @param root project path
 	 * @param processor compilation info processor, can be null
 	 * @param pathFilters filters to use when compiling java files
+	 * @param parser the parser to use for java files
+	 * @param executorService the executor to use for compilation
 	 * @return the storage
 	 */
 	static <T> CompilationStorage newInstance(Path root,
 											  CompilationInfoProcessor<T> processor = null,
-											  List<Pattern> pathFilters = Collections.emptyList()) {
+											  List<Pattern> pathFilters = Collections.emptyList(),
+											  JavaCompilationParser parser = null,
+											  ExecutorService executorService = null) {
 		Validate.isTrue(root != null, "Project path must not be null!")
-		return new DefaultCompilationStorage(processor, pathFilters).initialize(root)
+		return new DefaultCompilationStorage(processor, pathFilters, parser, executorService).initialize(root)
 	}
 
 	/**
@@ -38,11 +43,15 @@ final class JPAL {
 	 *
 	 * @param processor compilation info processor, can be null
 	 * @param pathFilters filters to use when compiling java files
+	 * @param parser the parser to use for java files
+	 * @param executorService the executor to use for compilation
 	 * @return the only reference to this compilation unit
 	 */
 	static <T> UpdatableCompilationStorage updatable(CompilationInfoProcessor<T> processor = null,
-													 List<Pattern> pathFilters = Collections.emptyList()) {
-		return new UpdatableDefaultCompilationStorage(processor, pathFilters)
+													 List<Pattern> pathFilters = Collections.emptyList(),
+													 JavaCompilationParser parser = null,
+													 ExecutorService executorService = null) {
+		return new UpdatableDefaultCompilationStorage(processor, pathFilters, parser, executorService)
 	}
 
 	/**
@@ -53,13 +62,18 @@ final class JPAL {
 	 * @param root project root path
 	 * @param processor compilation info processor, can be null
 	 * @param pathFilters filters to use when compiling java files
+	 * @param parser the parser to use for java files
+	 * @param executorService the executor to use for compilation
 	 * @return the only reference to this compilation unit
 	 */
 	static <T> UpdatableCompilationStorage initializedUpdatable(Path root,
 																CompilationInfoProcessor<T> processor = null,
-																List<Pattern> pathFilters = Collections.emptyList()) {
+																List<Pattern> pathFilters = Collections.emptyList(),
+																JavaCompilationParser parser = null,
+																ExecutorService executorService = null) {
 		Validate.isTrue(root != null, "Project path must not be null!")
-		return new UpdatableDefaultCompilationStorage(processor, pathFilters).initialize(root) as UpdatableCompilationStorage
+		return new UpdatableDefaultCompilationStorage(processor, pathFilters, parser, executorService)
+				.initialize(root) as UpdatableCompilationStorage
 	}
 
 	/**
