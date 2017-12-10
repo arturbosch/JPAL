@@ -126,6 +126,18 @@ class CompilationInfo implements Processable, Comparable<CompilationInfo> {
 		else Optional.ofNullable(innerClasses.find { it.key == qualifier }).map { it.value }
 	}
 
+	/**
+	 * Return the qualified type matching given class name
+	 * @param clazzName given name
+	 * @return qualified type if class with given name is declared inside this compilation info
+	 */
+	Optional<QualifiedType> getQualifiedTypeBySimpleName(String clazzName) {
+		return Optional.ofNullable(
+				qualifiedType.shortName == clazzName
+						? qualifiedType
+						: innerClasses.find { it.key.shortName == clazzName }?.key)
+	}
+
 	@Override
 	String toString() {
 		return "CompilationInfo{" +
