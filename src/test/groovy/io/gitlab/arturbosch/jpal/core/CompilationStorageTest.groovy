@@ -1,5 +1,6 @@
 package io.gitlab.arturbosch.jpal.core
 
+import com.github.javaparser.ast.DataKey
 import io.gitlab.arturbosch.jpal.Helper
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import io.gitlab.arturbosch.jpal.resolution.Resolver
@@ -56,10 +57,11 @@ class CompilationStorageTest extends Specification {
 
 	def "compilation storage with processor test"() {
 		given: "compilation storage with processor"
-		def storage = JPAL.newInstance(Helper.BASE_PATH, new CompilationInfoProcessor<String>() {
+		def key = new DataKey<String>() {}
+		def storage = JPAL.newInstance(Helper.BASE_PATH, new CompilationInfoProcessor() {
 			@Override
-			String process(CompilationInfo info, Resolver resolver) {
-				return "nice"
+			void process(CompilationInfo info, Resolver resolver) {
+				info.setData(key, "nice")
 			}
 		})
 
@@ -67,9 +69,7 @@ class CompilationStorageTest extends Specification {
 		def instances = storage.allCompilationInfo
 
 		then: "every instance should have the string 'nice'"
-		instances.each {
-			assert it.getProcessedObject(String.class) == "nice"
-		}
+		instances.stream().allMatch { it.getData(key) == "nice" }
 	}
 
 }

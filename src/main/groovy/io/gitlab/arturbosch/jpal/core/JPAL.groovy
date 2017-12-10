@@ -27,11 +27,11 @@ final class JPAL {
 	 * @param executorService the executor to use for compilation
 	 * @return the storage
 	 */
-	static <T> CompilationStorage newInstance(Path root,
-											  CompilationInfoProcessor<T> processor = null,
-											  List<Pattern> pathFilters = Collections.emptyList(),
-											  JavaCompilationParser parser = null,
-											  ExecutorService executorService = null) {
+	static CompilationStorage newInstance(Path root,
+										  CompilationInfoProcessor processor = null,
+										  List<Pattern> pathFilters = Collections.emptyList(),
+										  JavaCompilationParser parser = null,
+										  ExecutorService executorService = null) {
 		Validate.isTrue(root != null, "Project path must not be null!")
 		return new DefaultCompilationStorage(processor, pathFilters, parser, executorService).initialize(root)
 	}
@@ -47,10 +47,10 @@ final class JPAL {
 	 * @param executorService the executor to use for compilation
 	 * @return the only reference to this compilation unit
 	 */
-	static <T> UpdatableCompilationStorage updatable(CompilationInfoProcessor<T> processor = null,
-													 List<Pattern> pathFilters = Collections.emptyList(),
-													 JavaCompilationParser parser = null,
-													 ExecutorService executorService = null) {
+	static UpdatableCompilationStorage updatable(CompilationInfoProcessor processor = null,
+												 List<Pattern> pathFilters = Collections.emptyList(),
+												 JavaCompilationParser parser = null,
+												 ExecutorService executorService = null) {
 		return new UpdatableDefaultCompilationStorage(processor, pathFilters, parser, executorService)
 	}
 
@@ -66,11 +66,11 @@ final class JPAL {
 	 * @param executorService the executor to use for compilation
 	 * @return the only reference to this compilation unit
 	 */
-	static <T> UpdatableCompilationStorage initializedUpdatable(Path root,
-																CompilationInfoProcessor<T> processor = null,
-																List<Pattern> pathFilters = Collections.emptyList(),
-																JavaCompilationParser parser = null,
-																ExecutorService executorService = null) {
+	static UpdatableCompilationStorage initializedUpdatable(Path root,
+															CompilationInfoProcessor processor = null,
+															List<Pattern> pathFilters = Collections.emptyList(),
+															JavaCompilationParser parser = null,
+															ExecutorService executorService = null) {
 		Validate.isTrue(root != null, "Project path must not be null!")
 		return new UpdatableDefaultCompilationStorage(processor, pathFilters, parser, executorService)
 				.initialize(root) as UpdatableCompilationStorage

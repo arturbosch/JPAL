@@ -178,7 +178,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 	protected CompilationInfo findTypesAndRunProcessor(CompilationInfo info) {
 		if (info) {
 			info.findUsedTypes(typeSolver)
-			if (processor) info.runProcessor(processor, typeSolver)
+			if (processor) processor.process(info, typeSolver)
 		}
 		return info
 	}

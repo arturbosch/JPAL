@@ -1,5 +1,6 @@
 package io.gitlab.arturbosch.jpal.core
 
+import com.github.javaparser.ast.DataKey
 import io.gitlab.arturbosch.jpal.Helper
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import io.gitlab.arturbosch.jpal.resolution.Resolver
@@ -18,20 +19,22 @@ class CompilationInfoTest extends Specification {
 
 	def "can set and retrieve processor"() {
 		given: "a compilation unit and dumb processor"
+		def key = new DataKey<String>() {}
 		def info = storage.allCompilationInfo.stream()
 				.filter { it.qualifiedType.name == Helper.QUALIFIED_TYPE_DUMMY }
 				.findFirst().get()
-		def processor = new CompilationInfoProcessor<String>() {
+		def processor = new CompilationInfoProcessor() {
 			@Override
-			String process(CompilationInfo ci, Resolver resolver) {
-				return ""
+			void process(CompilationInfo ci, Resolver resolver) {
+				ci.setData(key, "")
 			}
 		}
 		when: "running the processor"
-		info.runProcessor(processor, null)
+		processor.process(info, null)
 
 		then: "we can obtain same instance through a getter with type"
-		info.getProcessedObject(String.class) == ""
+		info.containsData(key)
+		info.getData(key) == ""
 	}
 
 	def "is within scope"() {

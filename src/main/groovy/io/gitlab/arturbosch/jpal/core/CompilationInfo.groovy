@@ -21,7 +21,7 @@ import java.nio.file.Paths
  * @author artur
  */
 @CompileStatic
-class CompilationInfo implements Processable, Comparable<CompilationInfo> {
+class CompilationInfo implements UserDataHolder, Comparable<CompilationInfo> {
 
 	final QualifiedType qualifiedType
 	final CompilationUnit unit
@@ -166,24 +166,5 @@ class CompilationInfo implements Processable, Comparable<CompilationInfo> {
 		if (relativePath != that.relativePath) return false
 
 		return true
-	}
-
-	@CompileStatic
-	@PackageScope
-	trait Processable {
-
-		private Object processedObject
-
-		@PackageScope
-		<T> void runProcessor(CompilationInfoProcessor<T> processor, Resolver resolver) {
-			this.processedObject = processor.process(this as CompilationInfo, resolver)
-		}
-
-		def <T> T getProcessedObject(Class<T> clazz) {
-			if (processedObject.getClass() == clazz) {
-				return processedObject as T
-			}
-			throw new IllegalStateException("Processor is either not set or not the provided type!")
-		}
 	}
 }
