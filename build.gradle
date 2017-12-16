@@ -10,7 +10,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 group 'io.gitlab.arturbosch.jpal'
-version '1.0.0.RC7'
+version '1.0.0'
 
 repositories {
 	mavenCentral()
