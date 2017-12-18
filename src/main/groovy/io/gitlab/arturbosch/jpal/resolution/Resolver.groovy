@@ -49,7 +49,6 @@ final class Resolver implements Solver {
 		return storage.getCompilationInfo(type)
 	}
 
-	@Deprecated
 	CompilationStorage getStorage() {
 		return storage
 	}
