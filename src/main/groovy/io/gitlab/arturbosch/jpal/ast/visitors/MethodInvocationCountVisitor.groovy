@@ -15,6 +15,7 @@ import groovy.transform.CompileStatic
 class MethodInvocationCountVisitor extends VoidVisitorAdapter {
 
 	private int count
+	private Set<String> testedMethods = new HashSet<>()
 	private final String searchedName
 
 	MethodInvocationCountVisitor() {
@@ -37,13 +38,16 @@ class MethodInvocationCountVisitor extends VoidVisitorAdapter {
 		if (searchedName.isEmpty()) {
 			count++
 		} else {
-			def scopeIsSearchedName = n.scope
-					.filter { it instanceof NameExpr }
-					.map { it as NameExpr }
-					.map { it.nameAsString }
-					.filter { it == searchedName }
-			if (scopeIsSearchedName.isPresent()) {
-				count++
+			if (!(n.nameAsString in testedMethods)) {
+				def scopeIsSearchedName = n.scope
+						.filter { it instanceof NameExpr }
+						.map { it as NameExpr }
+						.map { it.nameAsString }
+						.filter { it == searchedName }
+				if (scopeIsSearchedName.isPresent()) {
+					count++
+					testedMethods.add(n.nameAsString)
+				}
 			}
 		}
 		super.visit(n, arg)

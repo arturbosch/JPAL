@@ -1,28 +1,19 @@
 plugins {
-	id "com.jfrog.bintray" version "1.7.3"
-	id 'com.github.ben-manes.versions' version '0.14.0'
+	id "com.jfrog.bintray" version "1.8.0"
+	id 'com.github.ben-manes.versions' version '0.17.0'
 //	id "com.github.hierynomus.license" version "0.13.1"
 }
 
 apply plugin: 'java'
 apply plugin: 'groovy'
-apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 group 'io.gitlab.arturbosch.jpal'
-version '1.0.0'
+version '1.0.1'
 
 repositories {
 	mavenCentral()
 	mavenLocal()
-}
-
-uploadArchives {
-	repositories {
-		mavenDeployer {
-			repository(url: uri('../repo'))
-		}
-	}
 }
 
 bintray {
