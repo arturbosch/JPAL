@@ -1,7 +1,8 @@
 package io.gitlab.arturbosch.jpal.internal
 
-import com.github.javaparser.printer.PrettyPrinter
 import com.github.javaparser.printer.PrettyPrinterConfiguration
+
+import java.util.function.Function
 
 /**
  * @author Artur Bosch
@@ -13,11 +14,13 @@ final class Printer {
 					.setPrintComments(false)
 					.setPrintJavaDoc(false)
 
-	static final PrettyPrinter PRETTY_PRINTER = new PrettyPrinter(NO_COMMENTS)
+	static final Function<PrettyPrinterConfiguration, PrettyPrintVisitor> FACTORY = { new PrettyPrintVisitor(it) }
 
 	private Printer() {}
 
 	static String toString(com.github.javaparser.ast.Node node) {
-		return PRETTY_PRINTER.print(node)
+		PrettyPrintVisitor visitor = FACTORY.apply(NO_COMMENTS)
+		node.accept(visitor, null)
+		return visitor.source
 	}
 }
