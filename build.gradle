@@ -9,7 +9,7 @@ apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 
 group 'io.gitlab.arturbosch.jpal'
-version '1.0.1'
+version '1.0.2'
 
 repositories {
 	mavenCentral()
