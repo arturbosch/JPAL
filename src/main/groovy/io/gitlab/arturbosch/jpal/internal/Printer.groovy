@@ -1,12 +1,14 @@
 package io.gitlab.arturbosch.jpal.internal
 
 import com.github.javaparser.printer.PrettyPrinterConfiguration
+import groovy.transform.CompileStatic
 
 import java.util.function.Function
 
 /**
  * @author Artur Bosch
  */
+@CompileStatic
 final class Printer {
 
 	static final PrettyPrinterConfiguration NO_COMMENTS =
@@ -14,7 +16,13 @@ final class Printer {
 					.setPrintComments(false)
 					.setPrintJavaDoc(false)
 
-	static final Function<PrettyPrinterConfiguration, PrettyPrintVisitor> FACTORY = { new PrettyPrintVisitor(it) }
+	static final Function<PrettyPrinterConfiguration, PrettyPrintVisitor> FACTORY =
+			new Function<PrettyPrinterConfiguration, PrettyPrintVisitor>() {
+				@Override
+				PrettyPrintVisitor apply(PrettyPrinterConfiguration prettyPrinterConfiguration) {
+					return new PrettyPrintVisitor(prettyPrinterConfiguration)
+				}
+			}
 
 	private Printer() {}
 
