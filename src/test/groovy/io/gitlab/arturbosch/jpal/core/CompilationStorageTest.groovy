@@ -60,8 +60,16 @@ class CompilationStorageTest extends Specification {
 		def key = new DataKey<String>() {}
 		def storage = JPAL.newInstance(Helper.BASE_PATH, new CompilationInfoProcessor() {
 			@Override
+			void setup(CompilationInfo info, Resolver resolver) {
+			}
+
+			@Override
 			void process(CompilationInfo info, Resolver resolver) {
 				info.setData(key, "nice")
+			}
+
+			@Override
+			void cleanup(CompilationInfo info, Resolver resolver) {
 			}
 		})
 

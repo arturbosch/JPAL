@@ -25,8 +25,16 @@ class CompilationInfoTest extends Specification {
 				.findFirst().get()
 		def processor = new CompilationInfoProcessor() {
 			@Override
+			void setup(CompilationInfo ci, Resolver resolver) {
+			}
+
+			@Override
 			void process(CompilationInfo ci, Resolver resolver) {
 				ci.setData(key, "")
+			}
+
+			@Override
+			void cleanup(CompilationInfo ci, Resolver resolver) {
 			}
 		}
 		when: "running the processor"

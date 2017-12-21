@@ -98,15 +98,18 @@ class UpdatableDefaultCompilationStorage extends DefaultCompilationStorage imple
 
 	private List<CompilationInfo> awaitAll(List<CompletableFuture<CompilationInfo>> futures) {
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
-		def arrayOfFutures = futures.collect {
-			it.thenApplyAsync({ findTypesAndRunProcessor(it) }, executor)
-		}.toArray(new CompletableFuture<?>[0])
-		CompletableFuture.allOf(arrayOfFutures).join()
-		List<CompilationInfo> result = futures.stream()
+		List<CompilationInfo> infos = futures.stream()
 				.map { it.get() }
 				.filter { it != null }
 				.collect(Collectors.toList())
-		return Collections.unmodifiableList(result)
+
+		def arrayOfFutures = infos.collect { CompilationInfo info ->
+			CompletableFuture.runAsync({ info.findUsedTypes(typeSolver) }, executor)
+		}.toArray(new CompletableFuture<?>[0])
+		CompletableFuture.allOf(arrayOfFutures).join()
+
+		runProcessor(infos)
+		return Collections.unmodifiableList(infos)
 	}
 
 }

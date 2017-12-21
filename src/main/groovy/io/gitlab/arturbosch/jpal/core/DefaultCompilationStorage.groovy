@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.Consumer
 import java.util.logging.Level
 import java.util.regex.Pattern
 import java.util.stream.Stream
@@ -98,14 +99,36 @@ class DefaultCompilationStorage implements CompilationStorage {
 		// search for used types after compilation as star imports are else not resolvable
 		futures = allCompilationInfo.collect { CompilationInfo info ->
 			CompletableFuture
-					.runAsync({ findTypesAndRunProcessor(info) }, executor)
+					.runAsync({ info.findUsedTypes(typeSolver) }, executor)
 					.exceptionally { log.log(Level.WARNING, "Error finding used types for $info.path:", it) }
 		}
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
 
+		// at last run the processor if present
+		runProcessor(allCompilationInfo)
+
 		StreamCloser.quietly(walker)
 		fresh = false
 		return this
+	}
+
+	protected void runProcessor(Collection<CompilationInfo> infos) {
+		if (processor) {
+			runProcessorAsync(infos) { processor.setup(it, typeSolver) }
+			runProcessorAsync(infos) { processor.process(it, typeSolver) }
+			runProcessorAsync(infos) { processor.cleanup(it, typeSolver) }
+		}
+	}
+
+	protected void runProcessorAsync(Collection<CompilationInfo> infos, Consumer<CompilationInfo> task) {
+		List<CompletableFuture<Void>> futures = infos.collect { CompilationInfo info ->
+			CompletableFuture
+					.runAsync({ task.accept(info) }, executor)
+					.exceptionally {
+				log.log(Level.WARNING, "Error running ${processor.getClass().simpleName} on $info.path: ", it)
+			}
+		}
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
 	}
 
 	private static Stream<Path> getJavaFilteredFileStream(Path root) {
@@ -169,18 +192,6 @@ class DefaultCompilationStorage implements CompilationStorage {
 	private static boolean isPackageOrModuleInfo(Path path) {
 		def filename = path.fileName.toString()
 		return filename == "package-info.java" || filename == "module-info.java"
-	}
-
-	/**
-	 * Postprocessing of compilation info's. Mainly due to the reason that type resolver
-	 * needs a full storage for finding used types. Parameter and result may be null!
-	 */
-	protected CompilationInfo findTypesAndRunProcessor(CompilationInfo info) {
-		if (info) {
-			info.findUsedTypes(typeSolver)
-			if (processor) processor.process(info, typeSolver)
-		}
-		return info
 	}
 
 	protected void addPackageName(String maybeNewPackageName) {
