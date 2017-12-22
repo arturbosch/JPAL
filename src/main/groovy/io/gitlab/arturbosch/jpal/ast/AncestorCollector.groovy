@@ -3,7 +3,6 @@ package io.gitlab.arturbosch.jpal.ast
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.type.ClassOrInterfaceType
 import groovy.transform.CompileStatic
-import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import io.gitlab.arturbosch.jpal.resolution.ResolutionData
 import io.gitlab.arturbosch.jpal.resolution.Resolver
@@ -17,11 +16,9 @@ import io.gitlab.arturbosch.jpal.resolution.Resolver
 class AncestorCollector {
 
 	private Resolver typeSolver
-	private CompilationStorage storage
 
 	AncestorCollector(Resolver resolver) {
 		typeSolver = resolver
-		storage = resolver.storage
 	}
 
 	Set<QualifiedType> getAll(ResolutionData startData, ClassOrInterfaceDeclaration aClass) {
@@ -64,7 +61,7 @@ class AncestorCollector {
 
 		for (type in types) {
 			if (type.isReference()) {
-				storage.getCompilationInfo(type).ifPresent {
+				typeSolver.find(type).ifPresent {
 					def declaration = it.getTypeDeclarationByQualifier(type).orElse(null)
 					if (declaration && declaration instanceof ClassOrInterfaceDeclaration) {
 						map.put(declaration as ClassOrInterfaceDeclaration, it.data)
