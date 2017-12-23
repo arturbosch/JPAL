@@ -126,6 +126,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 					.runAsync({ task.accept(info) }, executor)
 					.exceptionally {
 				log.log(Level.WARNING, "Error running ${processor.getClass().simpleName} on $info.path: ", it)
+				throw it
 			}
 		}
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join()
