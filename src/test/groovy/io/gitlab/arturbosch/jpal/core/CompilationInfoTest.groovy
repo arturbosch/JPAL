@@ -71,6 +71,7 @@ class CompilationInfoTest extends Specification {
 
 	def "info holds inner classes"() {
 		given: "qualified type of a inner class"
+		def storage = JPAL.newInstance(Helper.BASE_PATH.resolve("test"))
 		def qualifiedType = new QualifiedType(
 				"io.gitlab.arturbosch.jpal.dummies.test.InnerClassesDummy.InnerClass.InnerInnerClass",
 				QualifiedType.TypeToken.REFERENCE)

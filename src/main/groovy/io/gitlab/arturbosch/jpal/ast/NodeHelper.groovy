@@ -6,6 +6,7 @@ import com.github.javaparser.ast.Node
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
+import com.github.javaparser.ast.body.TypeDeclaration
 import io.gitlab.arturbosch.jpal.internal.Validate
 
 import java.util.function.Predicate
@@ -20,6 +21,7 @@ final class NodeHelper {
 
 	static Predicate<Node> unitPredicate = { it instanceof CompilationUnit }
 	static Predicate<Node> classPredicate = { it instanceof ClassOrInterfaceDeclaration }
+	static Predicate<Node> typePredicate = { it instanceof TypeDeclaration }
 	static Predicate<Node> methodPredicate = { it instanceof MethodDeclaration }
 
 	private NodeHelper() {}
@@ -106,6 +108,10 @@ final class NodeHelper {
 	 */
 	static Optional<ClassOrInterfaceDeclaration> findDeclaringClass(Node node) {
 		return findDeclaring(node, classPredicate)
+	}
+
+	static Optional<TypeDeclaration> findDeclaringType(Node node) {
+		return findDeclaring(node, typePredicate)
 	}
 
 	/**

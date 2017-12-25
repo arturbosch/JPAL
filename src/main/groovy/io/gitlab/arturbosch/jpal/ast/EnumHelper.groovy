@@ -32,8 +32,8 @@ final class EnumHelper {
 	static String createFullSignature(EnumDeclaration n) {
 		Validate.notNull(n)
 		String signature = ""
-		NodeHelper.findDeclaringClass(n)
-				.ifPresent { signature = ClassHelper.createSignature(it) + "\$$signature" }
+		NodeHelper.findDeclaringType(n)
+				.ifPresent { signature = ClassHelper.createFullSignature(it) + "\$$signature" }
 		NodeHelper.findDeclaringMethod(n)
 				.ifPresent { signature = signature + "${it.name}\$" }
 		return signature + createSignature(n)

@@ -1,8 +1,11 @@
 package io.gitlab.arturbosch.jpal.ast
 
 import com.github.javaparser.ast.Node
+import com.github.javaparser.ast.body.AnnotationDeclaration
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
+import com.github.javaparser.ast.body.EnumDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
+import com.github.javaparser.ast.body.TypeDeclaration
 import groovy.transform.CompileStatic
 import io.gitlab.arturbosch.jpal.internal.Validate
 
@@ -52,14 +55,17 @@ final class ClassHelper {
 	 * @param n given class type
 	 * @return the full unique signature as a string
 	 */
-	static String createFullSignature(ClassOrInterfaceDeclaration n) {
+	static String createFullSignature(TypeDeclaration n) {
 		Validate.notNull(n)
 		String signature = ""
-		NodeHelper.findDeclaringClass(n)
+		NodeHelper.findDeclaringType(n)
 				.ifPresent { signature = createFullSignature(it) + "\$$signature" }
 		NodeHelper.findDeclaringMethod(n)
 				.ifPresent { signature = signature + "${it.name}\$" }
-		return signature + createSignature(n)
+		return signature + (n instanceof ClassOrInterfaceDeclaration ?
+				createSignature(n as ClassOrInterfaceDeclaration) :
+				n instanceof EnumDeclaration ? EnumHelper.createSignature(n) :
+						(n as AnnotationDeclaration).nameAsString)
 	}
 
 	/**

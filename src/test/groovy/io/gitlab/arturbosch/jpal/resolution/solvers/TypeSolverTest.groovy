@@ -8,6 +8,7 @@ import io.gitlab.arturbosch.jpal.core.CompilationStorage
 import io.gitlab.arturbosch.jpal.core.JPAL
 import io.gitlab.arturbosch.jpal.resolution.QualifiedType
 import io.gitlab.arturbosch.jpal.resolution.ResolutionData
+import io.gitlab.arturbosch.jpal.resolution.Resolver
 import spock.lang.Specification
 
 /**
@@ -57,6 +58,17 @@ class TypeSolverTest extends Specification {
 		primitiveType = new PrimitiveType(PrimitiveType.Primitive.BOOLEAN)
 		boxedType = primitiveType.toBoxedType()
 		unknownType = new UnknownType()
+	}
+
+	def "nested classes"() {
+		given:
+		def path = Helper.BASE_PATH.resolve("resolving").resolve("LongChainResolving.java")
+		when:
+		def info = new Resolver(storage).find(path)
+		then:
+		info.get().innerClasses.find {
+			it.key.name == "io.gitlab.arturbosch.jpal.dummies.resolving.LongChainResolving.FourthChain.FifthChain"
+		} != null
 	}
 
 }

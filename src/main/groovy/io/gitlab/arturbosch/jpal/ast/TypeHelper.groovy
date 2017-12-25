@@ -17,6 +17,7 @@ import io.gitlab.arturbosch.jpal.resolution.Resolver
 import io.gitlab.arturbosch.jpal.resolution.nested.NoClassesException
 import io.gitlab.arturbosch.jpal.resolution.solvers.TypeSolver
 
+import java.util.regex.Pattern
 import java.util.stream.Collectors
 
 /**
@@ -117,7 +118,7 @@ final class TypeHelper {
 	 * @return set of qualified types
 	 */
 	static Set<QualifiedType> getQualifiedTypesOfInnerClasses(CompilationUnit unit) {
-		List<TypeDeclaration> types = unit.getTypes()
+		def types = unit.getTypes()
 		if (types.size() >= 1) {
 			TypeDeclaration mainClass = types[0]
 			String packageName = unit.packageDeclaration.map { it.nameAsString }.orElse("")
@@ -132,7 +133,7 @@ final class TypeHelper {
 	}
 
 	static Pair<Pair<QualifiedType, TypeDeclaration>, Map<QualifiedType, TypeDeclaration>> getQualifiedDeclarationsOfInnerClasses(CompilationUnit unit) {
-		List<TypeDeclaration> types = unit.getTypes()
+		def types = unit.getTypes()
 		if (types.size() >= 1) {
 			String packageName = unit.packageDeclaration.map { it.nameAsString }.orElse(DEFAULT_PACKAGE)
 
@@ -140,7 +141,7 @@ final class TypeHelper {
 			Map<QualifiedType, TypeDeclaration> otherTopLevelOrInnerDeclarations = [:]
 			for (indexTypeDecl in types.withIndex()) {
 				def currentType = qualifiedTypeForTopLevelTypeDeclaration(indexTypeDecl.first, packageName)
-				def innerTypesMap = findInnerTypes(indexTypeDecl.first, currentType.name)
+				def innerTypesMap = findInnerTypes(indexTypeDecl.first, currentType)
 				if (indexTypeDecl.second == 0) { // first top level class is treated special by CompilationInfo
 					firstTopLevel = new Pair<>(currentType, indexTypeDecl.first)
 				} else {
@@ -161,17 +162,20 @@ final class TypeHelper {
 		return new QualifiedType("$packageName.$mainClassName", QualifiedType.TypeToken.REFERENCE)
 	}
 
-	private static Map<QualifiedType, TypeDeclaration> findInnerTypes(TypeDeclaration typeDecl, String parentName) {
+	private static Map<QualifiedType, TypeDeclaration> findInnerTypes(
+			TypeDeclaration typeDecl,
+			QualifiedType parentType) {
 		def types = Validate.notNull(typeDecl).getChildNodesByType(TypeDeclaration.class)
 		return types.stream().filter { it.parentNode instanceof Optional<TypeDeclaration> }
 				.collect()
 				.collectEntries {
 			def declaration = it as TypeDeclaration
-			def qualifiedName = "$parentName${parentName.endsWith(".") ? "" : "."}${declaration.nameAsString}"
-			def qualifiedType = new QualifiedType(qualifiedName, QualifiedType.TypeToken.REFERENCE)
+			def signature = ClassHelper.createFullSignature(declaration).replaceAll(DOLLAR, '.')
+			def qualifiedType = new QualifiedType("$parentType.onlyPackageName.$signature", QualifiedType.TypeToken.REFERENCE)
 			[qualifiedType, it]
 		}
 	}
+	private final static Pattern DOLLAR = Pattern.compile("\\\$")
 
 	/**
 	 * Finds all used types which are used within this compilation unit.

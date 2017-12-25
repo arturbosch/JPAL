@@ -158,8 +158,7 @@ class DefaultCompilationStorage implements CompilationStorage {
 	@Override
 	Optional<CompilationInfo> getCompilationInfo(QualifiedType qualifiedType) {
 		Validate.notNull(qualifiedType)
-		def qualifiedOuterType = qualifiedType.asOuterClass()
-		return Optional.ofNullable(typeCache.get(qualifiedOuterType))
+		return Optional.ofNullable(typeCache.get(qualifiedType))
 	}
 
 	@Override

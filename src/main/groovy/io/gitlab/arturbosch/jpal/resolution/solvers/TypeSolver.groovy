@@ -84,29 +84,23 @@ final class TypeSolver {
 		return QualifiedType.UNKNOWN
 	}
 
-	private Optional<QualifiedType> getFromImports(String name, ResolutionData data) {
-		Validate.notEmpty(name)
-		def importName = trimInnerClasses(name)
+	private Optional<QualifiedType> getFromImports(String importName, ResolutionData data) {
+		Validate.notEmpty(importName)
 
 		def imports = data.imports
 		if (imports.keySet().contains(importName)) {
 			def qualifiedName = imports.get(importName)
-			def qualifiedNameWithInnerClass = qualifiedName.substring(0, qualifiedName.lastIndexOf('.') + 1) + name
+			def qualifiedNameWithInnerClass = qualifiedName.substring(0, qualifiedName.lastIndexOf('.') + 1) + importName
 			def typeToken = qualifiedName.startsWith("java") ?
 					QualifiedType.TypeToken.JAVA_REFERENCE : QualifiedType.TypeToken.REFERENCE
 			return Optional.of(new QualifiedType(qualifiedNameWithInnerClass, typeToken))
 		} else if (storage) {
 			return data.importsWithAsterisk.stream()
-					.map { new QualifiedType("$it.$name", QualifiedType.TypeToken.REFERENCE) }
+					.map { new QualifiedType("$it.$importName", QualifiedType.TypeToken.REFERENCE) }
 					.filter { storage.getCompilationInfo(it).isPresent() }
 					.findFirst()
 
 		}
 		Optional.empty()
 	}
-
-	private static String trimInnerClasses(String name) {
-		name.contains(".") ? name.substring(0, name.indexOf('.')) : name
-	}
-
 }

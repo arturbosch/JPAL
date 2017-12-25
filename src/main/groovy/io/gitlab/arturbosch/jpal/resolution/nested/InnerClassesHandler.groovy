@@ -16,9 +16,9 @@ import io.gitlab.arturbosch.jpal.internal.Validate
 @CompileStatic
 class InnerClassesHandler {
 
-	private TypeDeclaration mainType
-	private String outerClassName
-	private Set<String> innerClassesNames
+	final TypeDeclaration mainType
+	final String outerClassName
+	final Set<String> innerClassesNames
 
 	InnerClassesHandler(CompilationUnit unit) {
 		Validate.notNull(unit)
@@ -64,12 +64,4 @@ class InnerClassesHandler {
 		def name = type.toString(Printer.NO_COMMENTS)
 		return isInnerClass(name) ? new ClassOrInterfaceType("$outerClassName.$name") : type
 	}
-
-	/**
-	 * @return the most outer type declaration of the compilation unit
-	 */
-	TypeDeclaration getMainType() {
-		return mainType
-	}
-
 }

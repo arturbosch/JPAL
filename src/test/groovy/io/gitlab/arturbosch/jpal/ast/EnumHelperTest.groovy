@@ -17,6 +17,7 @@ class EnumHelperTest extends Specification {
 
 		then:
 		signature == "EnumSignatureDummy implements Runnable"
-		fullSignature == "VeryComplexInnerClass<T extends String, B extends List<T>> extends ClassSignatureDummy implements Cloneable, Runnable\$EnumSignatureDummy implements Runnable"
+		fullSignature == "ClassSignatureDummy\$VeryComplexInnerClass<T extends String, B extends List<T>> extends " +
+				"ClassSignatureDummy implements Cloneable, Runnable\$EnumSignatureDummy implements Runnable"
 	}
 }
