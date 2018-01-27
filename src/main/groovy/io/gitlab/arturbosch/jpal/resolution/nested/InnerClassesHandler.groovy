@@ -33,24 +33,24 @@ class InnerClassesHandler {
 	}
 
 	/**
-	 * Tests if the given class name is a inner cass.
-	 * @param className name as string
-	 * @return true if inner class
-	 */
-	boolean isInnerClass(String className) {
-		Validate.notNull(className)
-		return innerClassesNames.contains(className)
-	}
-
-	/**
 	 * Appends the outer class to the given inner class
 	 * @param type probably a inner class type
 	 * @return unqualified name for inner class
 	 */
 	String getUnqualifiedNameForInnerClass(Type type) {
 		Validate.notNull(type)
-		return isInnerClass(type.toString(Printer.NO_COMMENTS)) ? "${outerClassName}.$type" : "$type"
+		def name = type.toString(Printer.NO_COMMENTS)
+		if (innerClassesNames.contains(name)) {
+			return "$outerClassName.$name"
+		} else {
+			def fullName = innerClassesNames.find { it.endsWith(name) }
+			if (fullName) {
+				return fullName
+			}
+		}
+		return "$type"
 	}
+
 	/**
 	 *
 	 * Appends the outer class type to the given inner class type if it is a inner class
@@ -60,8 +60,6 @@ class InnerClassesHandler {
 	 * @return unqualified type for inner class
 	 */
 	ClassOrInterfaceType getUnqualifiedTypeForInnerClass(ClassOrInterfaceType type) {
-		Validate.notNull(type)
-		def name = type.toString(Printer.NO_COMMENTS)
-		return isInnerClass(name) ? new ClassOrInterfaceType("$outerClassName.$name") : type
+		return new ClassOrInterfaceType(getUnqualifiedNameForInnerClass(type))
 	}
 }

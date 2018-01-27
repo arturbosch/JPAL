@@ -6,6 +6,7 @@ import com.github.javaparser.ast.body.EnumDeclaration
 import com.github.javaparser.ast.body.TypeDeclaration
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
 import groovy.transform.CompileStatic
+import io.gitlab.arturbosch.jpal.ast.NodeHelper
 
 /**
  * @author Artur Bosch
@@ -40,8 +41,19 @@ class InnerClassesNameCollector extends VoidVisitorAdapter {
 	private void addIfInnerClass(TypeDeclaration n) {
 		def className = n.nameAsString
 		if (className != mainName) {
-			names.add(className)
+			def fullName = findFullName(n)
+			names.add(fullName)
 		}
+	}
+
+	private static String findFullName(TypeDeclaration n) {
+		def fullName = n.nameAsString
+		def parent = NodeHelper.findDeclaringType(n)
+		while (parent.isPresent()) {
+			fullName = parent.get().nameAsString + ".$fullName"
+			parent = NodeHelper.findDeclaringType(parent.get())
+		}
+		return fullName
 	}
 
 	@Override
