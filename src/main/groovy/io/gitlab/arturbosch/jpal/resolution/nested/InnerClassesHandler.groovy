@@ -43,7 +43,7 @@ class InnerClassesHandler {
 		if (innerClassesNames.contains(name)) {
 			return "$outerClassName.$name"
 		} else {
-			def fullName = innerClassesNames.find { it.endsWith(name) }
+			def fullName = innerClassesNames.find { it.substring(it.lastIndexOf('.') + 1) == name }
 			if (fullName) {
 				return fullName
 			}
