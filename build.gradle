@@ -1,10 +1,8 @@
 plugins {
-	id "com.jfrog.bintray" version "1.8.0"
-	id 'com.github.ben-manes.versions' version '0.17.0'
-//	id "com.github.hierynomus.license" version "0.13.1"
+	id 'com.github.ben-manes.versions' version '0.39.0'
 }
 
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 
@@ -14,25 +12,6 @@ version '1.0.2'
 repositories {
 	mavenCentral()
 	mavenLocal()
-}
-
-bintray {
-	user = System.getenv("BINTRAY_USER") ?: ""
-	key = System.getenv("BINTRAY_API_KEY") ?: ""
-	publications = ["JpalPublication"]
-
-	pkg {
-		repo = 'code-analysis'
-		name = 'Jpal'
-		userOrg = 'arturbosch'
-		licenses = ['Apache-2.0']
-		vcsUrl = "https://github.com/arturbosch/JPAL"
-
-		version {
-			name = project.version
-			released = new Date()
-		}
-	}
 }
 
 publishing {
@@ -47,9 +26,9 @@ publishing {
 }
 
 dependencies {
-	compile 'org.codehaus.groovy:groovy-all:2.4.11'
-	compile 'com.github.javaparser:javaparser-core:3.4.1'
-	testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
+	api 'org.codehaus.groovy:groovy-all:2.4.11'
+	api 'com.github.javaparser:javaparser-core:3.4.1'
+	testImplementation 'org.spockframework:spock-core:1.1-groovy-2.4'
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
